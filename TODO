@@ -1,0 +1,299 @@
+Função que testa se um dado conjunto de arestas (ou subgrafo) é uma trilha.
+	testar se esse conjunto induz um grafo conexo (G.is_connected());
+	testar se esse grafo possui exatamente dois vértices de grau ímpars
+
+Função que testa se uma dada rotulação é uma d-decomposição (que cada rótulo está em exatamente d arestas)
+
+Função que testa se uma dada rotulação induz uma decomposição em trilhas
+
+DECOMPOSICAO CANONICA
+
+Precisamos que G (um grafo d-regular, com d ímpar) possua emparelhamento perfeito
+
+Seja M um emparelhamento perfeito (G.matching())
+Note que G-M é (d-1)-regular (G.delete_edges(M))
+G-M admite uma 2-fatorização (G.two_factor_petersen()), digamos Fat
+	um 2-fator é um grafo 2-regular e gerador (que possui todos os vértices de G)
+	uma 2-fatorização é uma decomposição em 2-fatores
+		como G-M é (d-1)-regular, então qualquer 2-fatorização possui (d-1)/2 elementos
+Orientar os 2-fatores em Fat, de forma que cada vértice possua exatamente uma aresta entrando e outra saindo.
+	Precisamos indicar para cada vértice qual aresta em F1 e F2 que sai dele
+		Talvez a função two_factor_petersen() já deixe orientado
+Assim, para cada aresta xy em M, construímos uma trilha T_{xy} de comprimento 5 como segue:
+	juntamos as arestas xx' e yy' de F1 que saem, respectivamente, de x e y,
+	e as arestas x'x* e y'y* de F2, que saem, respectivemente, de x' e y'.
+
+
+Encontrar uma decomposição canônica C= decompor o grafo em trilhas de comprimento 5
+	trocar os rótulos das arestas de forma que o rótulo de cada aresta indique o elemento de C ao qual ela pertence
+	as arestas com o mesmo rótulo devem induzir uma trilha
+	o ideal é que os rótulos sejam números entre 0 e (m/5)-1 = (n/2) -1
+
+TESTAR POLÍTICA DE TROCAS
+
+Criar função que testa se a decomposição é decomposição em caminhos
+	função que testa se uma elemento é um caminho
+		def:	um caminho é uma trilha aberta com grau máximo 2
+
+Identificar as trocas possíveis
+	Identificar, para cada vértice suas arestas pendentes (hanging edges)
+		def (formal):	dizemos que xy é uma aresta pendente em y
+				se xy é aresta de uma trilha T que pode ser escrita
+				como v_0v_1v_2...v_k, onde v_0=x e v_1 = y
+		def (local):	dizemos que xy é uma aresta pendente em y
+				se xy é aresta de uma trilha T,
+				x tem grau ímpar em T,
+				e T-xy é conexo;
+				ou se x tem grau 1.
+		Assim, devemos (talvez seja bom) ter um dicionário que, para cada vértice, indica as arestas pendentes nele
+
+	Identificar as trocas possíveis
+		def:	uma troca possível é um par de arestas pendentes no mesmo vértice,
+			mas que têm "cores" diferentes
+
+	Gostaríamos de saber se há uma sequência de trocas que transforma a decomposição canônica em uma decomposição em caminhos.
+		Para isso, vamos testar (de forma esperta) todas as possíveis sequências de trocas
+			esperta:	porque uma vez que encontremos uma decomposição em caminhos, estamos felizes
+			esperta2: 	note que se aplicamos a troca T em uma decomposição D_0,
+					obtendo uma decomposição D_1,
+					então T é uma troca possível em D_1.
+					Porém, assim vamos entrar em loop, pois podemos ficar repetindo a troca T sem parar.
+			Devemos ter uma recursão que evita voltar para uma decomposição antiga
+				podemos dar uma ordem aleatória para as trocas possíveis
+				podemos proibir a última troca feita
+				* proibir todas as trocas que já foram feitas até então, pode acabar proibindo uma troca boa.
+
+EXTRAS
+	Permitir que a decomposição canônica seja personalizada
+		Note que emparelhamentos perfeitos diferentes geram decomposições canônicas diferentes.
+		Note que a ordem dos fatores da two_factor_petersen() influencia a decomposição canônica
+			i.e., se trocarmos a ordem dos fatores, obteremos decomposições canônicas diferentes.
+		O Emparelhamento perfeito e a fatorização podem ser parte da entrada da função
+	No futuro vamos querer testar várias decomposições canônicas diferentes
+
+			T_1 com aresta pendente yx_1
+			T_2 com aresta pendente yx_2
+			T_1-yx_1 é um grafo conexo no qual o grau de x_1 é par
+				e pode ser visto como uma trilha que possui y como vértice final
+			T_1-yx_1+yx_2 é um grafo conexo
+
+PARA PENSAR
+	Matriz (ou vetor) de uma decomposição:
+		dadas duas arestas e1 e e2, denotamos por x_{e1,e2} uma variável que funciona como segue
+			x_{e1,e2}=1 se e1 e e2 estão no mesmo elemento da decomposição
+			x_{e1,e2}=0 se e1 e e2 estão em elementos diferentes da decomposição
+		Então o vetor/conjunto/matriz x_D={x_{e,f}: e,f arestas de G} caracteriza a decomposição D
+		Isso é, duas decomposições são iguais se e somente se seus vetores são iguais.
+		Essa matriz tem m^2 variáveis (o que é da ordem de n^4).
+
+		Podemos tornar essa matriz mais eficientes (isso é, com menos variáveis)
+		se considerarmos x_{e1,e2} apenas no caso em que e1 e e2 são arestas incidentes no mesmo vértice.
+		Vale a mesma observação: duas decomposições são iguais se e somente se seus vetores são iguais.
+		Que tal chamar esse vetor de "vetor característico" de uma decomposição.
+		Não é difícil de provar que essa matriz tem n^3 variáveis.
+
+
+		Isso "ajuda" a resolver o nosso problema de ciclar.
+			Se guardarmos todas as decomposições já visitadas, podemos comparar uma tal decomposição com as decomposições já visitadas.
+			Uma ideia é guardar um número finito de decomposições visitas (digamos as 100 últimas visitadas),
+			isso faria com que precisemos comparar uma decomposição com 100 decomposições em cada passo,
+			por outro lado, isso evitaria circuitos (de decomposições) de copmrimento 100.
+
+		Outra ideia que talvez facilite é fazer uma "assinatura" da decomposição.
+			Algo que facilite a comparação e armazenamento de duas decomposições.
+			A assinatura seria uma função injetiva, um hash, ou algo do tipo.
+			Ela pode mandar duas decomposições na mesma assinatura,
+			mas o bom é que se duas assinaturas são diferentes, então as decomposições são diferentes.
+			E aí, se duas assinaturas forem iguais, aí comparamos as decomposições que levaram a elas.
+			Aí talvez tenhamos que guardar um número grande de decomposições =/
+			Ou então fixamos um número máximo de vezes que uma mesma assinatura é encontrada.
+				Por exemplo, se uma assinatura é vista 10 vezes, então abortamos aquele ramo.
+
+IDEIA OUSADA para substituir essa matriz de uma decomposição.
+	usar o próprio G.edges(), pois ele nunca muda a ordem das arestas.
+	isso quer dizer que podemos adicionar G.edges() atual antes de cada move em uma lista dos G.edges() anteriores
+	e depois de um move podemos comparar com esta lista
+
+INTELIGÊNCIA
+	Precisamos de uma função que tem como domínio o espaço das decomposições,
+	e tem como imagem as trocas possíveis.
+	Essa função deve devolver um peso para cada troca possível
+	Talvez a resposta certa seja Graph Invariants (https://en.wikipedia.org/wiki/Category:Graph_invariants)
+	Um invariante é uma função que tem o mesmo valor para grafos isomorfos.
+	Em outras palavras, é uma função que não muda se mudarmos a rotulação/ordem dos vértices.
+	Há uma infinidade de invariantes, e uma coisa que podemos tentar é testar um número finito deles.
+	Temos três grafos para considerar: 
+		1) o grafo original; 
+		2) o grafo da k-vizinhança de cada vértice (os vértices com distância até k); 
+		3) e o grafo dos ângulos setados (é um subgrafo do grafo linha -- line graph)
+	Fábio:	na minha cabeça, temos inicialmente um polinômio genérico no qual cada variável é um invariante.
+			E aí, na medida em que vamos encontrando folhas na árvore de trocas, vamos refinando o polinômio.
+			Isso dará os coeficientes de cada polinômio.
+			
+	ideia:	os ângulos de G correspondem às arestas do grafo linha de G (G.line_graph()), que denotamos por L(G)
+			Uma decomposição de G corresponde a uma 2-coloração das arestas de L(G)
+			Eu acho que para cada vértice v, podemos criar um subgrafo local G_v, que consiste do grafo induzido pelos vértices de G que possuem distância no máximo, digamos, 10 de v.
+			Agora olhamos para o subgrafo de L(G) induzido por G_v
+			colocamos 1 para as arestas de L(G) que são setas pela decomposição corrente,
+			e -1 para as arestas que não são setadas (0 são os Ângulos de G que não existem).
+			Nisso, pegamos os autovalores dessa matriz, e usamos nas nossas variáveis.
+			agora queremos um polinomio que dê uma nota boa para uma troca boa
+			a princípio acho que começamos com um polinômio com coeficientes genéricos, e vamos refinando esses coeficientes com treino.
+			
+
+PARALELIZAR
+    Outra coisa: podemos tentar aprender a paralelizar. Já que a solução para dois grafos são independentes.
+
+PROFUNDIDADE DA RECURSÃO
+	Por enquanto a profundidade máxima da recursão está definida como 1000,
+	
+GRAFOS COM GRAUS MAIORES
+	Já que há muitos grafos com 16 vértices, podemos nos restringir a grafos com até 14, e resolver o problema para grafos (2k+1)-regulares com k>=2
+
+GRAFO AUXILIAR
+	Dada uma decomposição D,
+	O grafo auxiliar de D é um grafo que possui os elementos de D como vértices;
+	e no qual dois elementos (de D) são ligados se há uma troca possível que troca
+	uma aresta de um com uma aresta do outro.
+	
+	É legal também que possamos, para cada troca, imprimir juntos os elementos envolvidos. (não entendi)
+
+FUNÇÕES DE IMPRESSÃO
+	Podem nos ajudar a entender os grafos que precisam de mais do que um emparelhamento
+	Seja G = M + F1 + F2, onde F1 e F2 são os 2-fatores disjuntos
+	Para i=1,2 identificar a ordem cíclica dos vértices de Fi
+		Se Fi é desconexo, há mais do que uma tal ordem
+	Imprimir o grafo de forma circular usando uma ordem de Fi.
+	
+PROJETO DE VISUALIZAÇÃO (Decomposition Prime Radiant)
+	Queremos desenvolver uma estrutura de figuras clicáveis
+	A estrutura possui três níveis
+		Nível 1) 	Cada nó representa uma decomposição na árvore de recursão de trocas. 
+					Um nó B é filho de um nó A, se a decomposição B é obtida da decomposição A por uma troca possível
+				 	Ao clicar em um nó da árvore recursão abrimos uma figura do nível 2, 
+				 		que corresponde ao grafo auxiliar da decomposição, i.e., o grafo de trocas possíveis
+				 	obs: T.show(layout="tree",tree_root=0)
+		Nível 2)	Cada nó representa um elemento da decomposição.
+					Dois nós estão ligados, se há uma troca possível de aresta entre eles.
+					Há dois objetos que podem ser clicado.
+						a)	ao clicar em uma aresta, abrimos uma figura do nível 3a
+							que corresponde aos dois elementos ligados por aquela aresta
+							isso é, ao clicar na aresta xy, gostaríamos de ver uma figura com os elementos de cor x e y
+						b) ao clicar em uma componente, abrimos uma figura do nível 3b
+							que corresponde a todos os elementos daquela componente
+							isso é, ao clicar em uma componente que possui os vértices x_1,x_2,...,x_k, 
+							gostaríamos de ver uma figura com os elementos de cor x_1,x_2,...,x_k
+		Nível 3)	Dadas as cores x_1,...,x_k, gostaríamos de ver os elementos da decomposição que estão coloridos com essas cores
+	Nota sobre o Prime Radiant: https://foundationseries.fandom.com/wiki/Prime_Radiant
+	
+RECURSÃO PARTE 2
+	Testar propriedades de "jogos vitoriosos". 
+		Um jogo vitorioso é uma sequência de movimentos, sem volta, iniciada com uma decomposição canônica, e terminada com uma decomposição em caminhos.
+	Gostaríamos de identificar propriedades invariantes na sequência de movimentos.
+		por exemplo: 
+			1) é verdade que para todo vértice de conexão sempre há uma aresta pendente nele?
+				Dado um elemento P de uma decomposição, definimos alguns dos vértices de P como os vértices de conexão de P.
+				Se P é um caminho, então P não tem vértices de conexão
+				Se P não é um caminho,
+				a) então os vértices de conexão são os vértices x1 e x4 onde x0x1x2x3x4x5 é uma trilha de P.
+				Os vértices de conexão de P são todos os vértices de P que podem ser os penúltimos vértices de alguma ordenação dos vértices de P.
+				Na prática, essa definição é simplesmente para que possamos pegar uma aresta pendente (hanging edge) em x4, e trocar por x4x5, e aí os dois elementos obtidos ainda serão trilhas.
+				b) Eu acho que isso é equivalente ao seguinte: um vértice x de P é vértice de conexão, se x for vizinho de um vértice que tenha grau ímpar em P.
+				Temos que ver os exemplos para saber se é isso mesmo.
+			2) há alguma trilha de comprimento 5 que nunca aparece?
+			
+PROGRAMA LINEAR INTEIRO
+	Há duas formulações
+		1) Formulação por ângulos, que permite que sejam geradas restrições aos poucos
+		2) Formulação direta: cada caminho é uma variável, e cada aresta pode estar em no máximo um caminho.
+	CPLEX
+		1) instalar o CPLEX - há uma licensa para pesquisadores/alunos
+		2) aprender a usar o CPLEX no sage
+	Aprender as formulações
+		1) Formulação por ângulo:
+			- gerar as variáveis e colocar no modelo: 
+				cada variável corresponde a um ângulo (um par de arestas incidentes a um mesmo vértice) do grafo.
+			- restrições dos vértices 
+				cada vértice corresponde a 10 ângulos
+				porém, no máximo dois desses ângulos podem ser atribuídos 1.
+					na verdade, exatamente dois ângulos vão receber 1
+			- interpretador de solução do PLI
+				função que tranforma o conjunto de ângulos setados (com 1) em decomposição em trilhas
+					seria ideal usar algo como union-find
+			- encontrador de problemas na decomposição
+				função que recebe uma decomposição e pergunta para cada elemento se ele é um caminho de comprimento 5
+					se todos os elementos forem caminhos de comprimento 5, então acabou, a decomposição é boa
+					se um elemento, digamos P, não é um caminho de comprimento 5, 
+						então há um elemento, digamos P' (possivelmente P = P'), com pelo menos 5 arestas e que não é um caminho.
+						Esse elemento possui uma trilha de comprimento pelo menos 5 que não é um caminho
+						Incluímos  uma equação nova no modelo
+							encontramos um circuito C nessa trilha
+							identificamos os ângulos A(C) desse circuito
+							eq: sum(a in A(C)) <= |A(C)|-2
+								acredite que é isso aí.
+			- a ideia é repetir esse procedimento enquanto for possível
+				é provado que esse procedimento termina se o modelo fornecer uma decomposição em caminhos de comprimento 5
+				
+		
+PARA ENCONTRAR ERROS
+	fazer checador de que uma decomposição é em trilhas,
+	i.e., se cada elemento é uma trilha
+	uma trilha é um grafo conexo com exatamente dois vértices de grau ímpar
+	
+	Em cada passo da árvore, pergunta se a decomposição em trilhas
+	
+Testador de hipóteses
+	que propriedades podemos perguntar para uma decomposição?
+		número de triângulos
+		número de quadrados
+		há uma aresta pendente em cada vértice?
+		há uma aresta pendente em cada vértice de conexão?
+		o que acontece quando dois elementos (ou um casal) se interceptam em mais de um vértice?
+			um casal é um par de elementos com uma troca possível
+	o que acontece com cada uma dessas propriedades durante uma sequência de trocas vencedora?
+	lembremos que a variável mov contém a sequência de trocas vencedora
+	criemos um algoritmo que 
+		começa com a decomposição canônica
+		aplica os movimentos do mov de um por um
+		testa o comportamento de cada uma das propriedades acima entre cada movimento
+	Permitir argumentos no level1
+		exemplos: 
+			1) allow_k4minuses, 
+			2) allow_triangles, 
+			3) allow_squares, 
+			4) allow_connection_vertex_whithout_hanging_edge
+		o objetivo, é descobrir se com alguma atribuição desses argumentos sempre há uma solução
+	Objetos especiais
+		1) subgrafo das arestas do meio
+			- Se P é um caminho x1x2x3x4x5x6, a aresta do meio é x3x4
+			- Se P é uma trilha que contém um quadrado, mas não contém triângulo, 
+				as arestas do meio são as arestas do quadrado que não são hanging edges, 
+				i.e., as arestas xy para as quais d_P(x) = d_P(y) = 2
+			- Se P é uma trilha que contém um triângulo, mas não contém um quadrado,
+				as arestas do meio são as arestas do triângulo, que são hanging edges,
+				i.e., as arestas xy para as quais {d_P(x),d_P(y)} = {2,3}.
+			- Se P é uma trilha que contém triângulo e contém quadrado (que agora chamamos de trilha do tipo péssima),
+				as arestas do meio são todas as arestas de P
+			+ Para obter esses subgrafos precisamos
+				1) uma função que devolve tais arestas de cada elemento
+				2) uma fução que devolve tais arestas de cada decomposição
+		2) subgrafo das hanging edges
+		É possível testar hipóteses relacionadas a esses objetos.
+			1) será que algum desses subgrafos sempre é uma floresta?
+				ou será que há uma sequência de moves para a qual a sequência desses subgrafos sempre é uma árvore?
+			2) será que sempre há uma decompsição em caminhos na qual o grafo das arestas do meio é um emparelhamento perfeito?
+			
+INTELIGENCIA PARTE 2
+	-	Dada decomposição, extrair grafo linha (line_graph())	
+		-	como as arestas do grafo original estão coloridas, os vértices do grafo linha estarão coloridos
+	-	colorir as arestas do grafo linha com 1 e -1:
+		-	1 para arestas que ligam vértices da mesma cor
+		-	-1 para arestas que ligam vértices de cores diferentes
+	-	extrair matriz de adjacência
+	-	extrair autovalores (eigenvalues)
+	-	o vetor ordenado dos autovalores será o "nome desse grafo"
+	-	precisamos fazer isso para subgrafos locais
+		-	Dado um vértice v de G, o d-subgrafo local de v é o subgrafo induzido de G no qual todos os vértices possuem distância no máximo d de v
+			-	Podemos fazer uma busca em largura com profundidade no máximo d, para encontrar os vértices desse grafo.
+	-	pegamos os autovalores como acima desse subgrafo local.
+	-	esses vetores de autovalores são os nossos estados
