@@ -88,6 +88,85 @@ def labelInducesTrail(graph):
 			return False
 	return True
 
+def canonicalDecomposition(graph, M = graph.matching(algorithm="Edmonds"), petersen = graph.two_factor_petersen()):
+	"""
+	If graph does not have perfect matching the function returns "False"
+	petersen is a list of 2-factors without M, which is a graph matching
+	For each edge in a 2-factor its label is changed
+	If for each matching of M a trail is generated (identified by the labels between 0 and (m / r) -1),
+	the function returns "True"
+	"""
+
+	labeling = len(graph)
+	if (len(M) != labeling/2):
+		return False
+	for i in M:
+		graph.delete_edge(i)
+	for i in range(len(petersen)):
+		for j in petersen[i]:
+			graph.set_edge_label(j[0], j[1], labeling + i)
+	cont = 0
+	for i in M:
+		x = i[0]
+		y = i[1]
+		graph.set_edge_label(x, y, cont)
+		for k in range(len(petersen)):
+			for j in petersen[k]:
+				if (j[0] == x):
+					graph.set_edge_label(j[0], j[1], cont)
+					x = j[1]
+					break
+			for j in petersen[k]:
+				if (j[0] == y):
+					graph.set_edge_label(j[0], j[1], cont)
+					y = j[1]
+					break
+		cont += 1
+
+def allowCanonicalDecomposition(graph, allow_k4minuses = True, allow_triangles = True, allow_squares = True, allow_connection_vertex_whithout_hanging_edge = True):
+	# Canonical decomposition where it is possible to select which of the trails are formed
+	# return True, if there is at least one decomposition requested
+	M = graph.matching(algorithm="Edmonds")
+	if (len(M) != len(graph)/2):
+		return False
+	for M in graph.perfect_matchings():
+		stop = True
+		for i in M:
+			graph.delete_edge(i)
+		petersen = graph.two_factor_petersen()
+		for i in M:
+			graph.add_edge(i[0], i[1], "P")
+		dec=canonicalDecomposition(graph,M,petersen)
+		a,b,c=badsCounter(graph)
+		d = hangConnectionVertexs(graph)
+		if (not allow_k4minuses and c>0):
+			stop = False
+		if (not allow_triangles and a>0):
+			stop = False
+		if (not allow_squares and b>0):
+			stop = False
+		if (not allow_connection_vertex_whithout_hanging_edge and d):
+			stop = False
+		if (stop == True):
+			break
+	return stop
+
+def nok4minusCanonicalDecomposition(graph):
+	M = graph.matching(algorithm="Edmonds")
+	if (len(M) != len(graph)/2):
+		return False
+	for M in graph.perfect_matchings():
+		for i in M:
+			graph.delete_edge(i)
+		petersen = graph.two_factor_petersen()
+		for i in M:
+			graph.add_edge(i[0], i[1], "P")
+		dec=canonicalDecomposition(graph,M,petersen)
+		a,b,c=badsCounter(graph)
+		if c==0:
+			break
+	return
+
 def isPath(graph):
 	# return True whether an element is a path
 	if (isTrail(graph) == False):
