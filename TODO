@@ -219,7 +219,7 @@ PROGRAMA LINEAR INTEIRO
 					na verdade, exatamente dois ângulos vão receber 1
 			- interpretador de solução do PLI
 				função que tranforma o conjunto de ângulos setados (com 1) em decomposição em trilhas
-					seria ideal usar algo como union-find
+					seria ideal usar algo como union-find (http://doc.sagemath.org/html/en/reference/sets/sage/sets/disjoint_set.html)
 			- encontrador de problemas na decomposição
 				função que recebe uma decomposição e pergunta para cada elemento se ele é um caminho de comprimento 5
 					se todos os elementos forem caminhos de comprimento 5, então acabou, a decomposição é boa
