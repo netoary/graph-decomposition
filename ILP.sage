@@ -113,14 +113,22 @@ def solve_angles_ILP(G):
 	p.solve()
 	solution = p.get_values(w).items()
 	listSetted = []
+	disjointSet = DisjointSet(G.edges())
 	for setted in solution:
 		if setted[1] == 1.0:
-			listSetted.append(setted[0][0])
-			listSetted.append(setted[0][1])
-			#aux = [setted[0][0]
-			#listSetted.append(setted[0])
-			#print setted
-	disjoitSet = DisjointSet(listSetted)
-	print disjoitSet.find((0, 1, None))
-    
-	
+			disjointSet.union(setted[0][0],setted[0][1])
+
+	print disjointSet.number_of_subsets()
+	return disjointSet
+
+"""
+G = graphs.RandomRegular(5, 8)
+dSet = solve_angles_ILP(G)
+cont = 0
+for i in dSet:
+	for e in i:
+		G.set_edge_label(e[0],e[1],cont)
+	cont += 1
+     
+G.show(color_by_label=true, layout="circular")
+"""
