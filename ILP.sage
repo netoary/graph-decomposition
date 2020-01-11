@@ -1,6 +1,6 @@
 import time
 
-load('decomposicoes-new.sage')
+load('functions.sage')
 def solve_direct_ILP(G):
 	inicio = time.time()
 	p = MixedIntegerLinearProgram(maximization=True,solver="GLPK")
@@ -92,3 +92,35 @@ def solve_direct_ILP_strong(G):
 		cor+=1
 	fim = time.time()
 	print('tempo de execução' + str(fim-inicio))
+
+def solve_angles_ILP(G):
+	inicio = time.time()
+	p = MixedIntegerLinearProgram(maximization=True,solver="GLPK")
+	count = 0
+	w = p.new_variable(binary=True)
+	constraint = 0
+	dic={}
+
+	for v in G.vertices():
+		constraint = 0
+		for pair in Subsets(G.edges_incident(v),2):
+			p.add_constraint(w[pair]<=1)
+			constraint = constraint + w[pair]
+		p.add_constraint(constraint<=2)
+		p.add_constraint(constraint>=2)	
+	
+	#print p
+	p.solve()
+	solution = p.get_values(w).items()
+	listSetted = []
+	for setted in solution:
+		if setted[1] == 1.0:
+			listSetted.append(setted[0][0])
+			listSetted.append(setted[0][1])
+			#aux = [setted[0][0]
+			#listSetted.append(setted[0])
+			#print setted
+	disjoitSet = DisjointSet(listSetted)
+	print disjoitSet.find((0, 1, None))
+    
+	
