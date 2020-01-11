@@ -88,14 +88,18 @@ def labelInducesTrail(graph):
 			return False
 	return True
 
-def canonicalDecomposition(graph, M = graph.matching(algorithm="Edmonds"), petersen = graph.two_factor_petersen()):
-	"""
-	If graph does not have perfect matching the function returns "False"
-	petersen is a list of 2-factors without M, which is a graph matching
-	For each edge in a 2-factor its label is changed
-	If for each matching of M a trail is generated (identified by the labels between 0 and (m / r) -1),
-	the function returns "True"
-	"""
+def canonicalDecomposition(graph, M = [], petersen = []):
+	# If graph does not have perfect matching the function returns "False"
+	# petersen is a list of 2-factors without M, which is a graph matching
+	# For each edge in a 2-factor its label is changed
+	# If for each matching of M a trail is generated (identified by the labels between 0 and (m / r) -1),
+	# the function returns "True"
+	
+	if M == []:
+		M = graph.matching(algorithm="Edmonds")
+		
+	if petersen == []:
+		petersen = graph.two_factor_petersen()
 
 	labeling = len(graph)
 	if (len(M) != labeling/2):
@@ -259,3 +263,5 @@ def unmove(graph, pair):
 	x2,y2,l2 = f
 	graph.set_edge_label(x1,y1,l1)
 	graph.set_edge_label(x2,y2,l2)
+
+# Prossimo passo unificar as buscas ou selecionar as mais importantes
