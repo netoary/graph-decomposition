@@ -156,3 +156,21 @@ for i in dSet:
 H.show(color_by_label=true, layout="circular")
 """
 
+
+
+def cycle_constraint(vertices,w):
+	constraint=0
+	first=vertices[0]
+	second=vertices[1]
+	l=len(vertices)
+	for i in range(0,l-2)
+		if vertices[i] < vertices[i+1]:
+			edge1 = (vertices[i],vertices
+		angle=(edge1,edge2)
+		constraint=constraint+w[angle]
+
+def constraint(edges,k,w):
+	H=Graph(edges)
+	basis=H.cycle_basis()
+	
+
