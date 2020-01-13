@@ -106,40 +106,28 @@ def solve_angles_ILP(G):
 		constraint = 0
 		iterator = Subsets(G.edges_incident(v),2)
 		for pair in iterator:
-			if (pair[0][0] < pair[1][0]):
-				angle = (pair[0], pair[1])
-			elif (pair[0][0] > pair[1][0]):
-				angle = (pair[1], pair[0])
-			else:
-				if (pair[0][1] < pair[1][1]):
-					angle = (pair[0], pair[1])
-				else:
-					angle = (pair[1], pair[0])
+			l = [pair[0], pair[1]]
+			l.sort()
+			angle = (l[0], l[1])
 			#print w[pair], w[(pair[0], pair[1])]
 			p.add_constraint(w[angle]<=1)
 			constraint = constraint + w[angle]
 		p.add_constraint(constraint<=2)
 		p.add_constraint(constraint>=2)
 
-	"""edges = G.edges()
+	edges = G.edges()
 	for e in edges:
 		for cont in range(2):
 			constraint = 0
 			incident = G.edges_incident(e[cont])
 			for i in incident:
 				if (e != i):
-					if (i[0] < e[0]):
-						angle = (i, e)
-					elif (i[0] > e[0]):
-						angle = (e, i)
-					else:
-						if (i[1] < e[1]):
-							angle = (i, e)
-						else:
-							angle = (e, i)
+					l = [e, i]
+					l.sort()
+					angle = (l[0], l[1])
 					constraint = constraint + w[angle]
 			p.add_constraint(constraint<=1)
-	"""
+	
 	
 	#print p
 	p.solve()
@@ -155,13 +143,14 @@ def solve_angles_ILP(G):
 
 """
 G = graphs.RandomRegular(5, 8)
-dSet = solve_angles_ILP(G)
-cont = 0
-H = Graph()
-for i in dSet:
-	for e in i:
-		H.add_edge(e[0],e[1],cont)
-	cont += 1
-     
-H.show(color_by_label=true, layout="circular")
+	dSet = solve_angles_ILP(G)
+	cont = 0
+	H = Graph()
+	for i in dSet:
+		for e in i:
+			H.add_edge(e[0],e[1],cont)
+		cont += 1
+		
+	H.show(color_by_label=true, layout="circular")
 """
+
