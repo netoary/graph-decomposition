@@ -132,6 +132,9 @@ def solve_angles_ILP(G):
 	#print p
 	p.solve()
 	solution = p.get_values(w).items()
+	disjointSet = solution_interpreter(solution)
+
+def solution_interpreter(solution):
 	listSetted = []
 	disjointSet = DisjointSet(G.edges())
 	for setted in solution:
@@ -143,14 +146,14 @@ def solve_angles_ILP(G):
 
 """
 G = graphs.RandomRegular(5, 8)
-	dSet = solve_angles_ILP(G)
-	cont = 0
-	H = Graph()
-	for i in dSet:
-		for e in i:
-			H.add_edge(e[0],e[1],cont)
-		cont += 1
+dSet = solve_angles_ILP(G)
+cont = 0
+H = Graph()
+for i in dSet:
+	for e in i:
+		H.add_edge(e[0],e[1],cont)
+	cont += 1
 		
-	H.show(color_by_label=true, layout="circular")
+H.show(color_by_label=true, layout="circular")
 """
 
