@@ -106,10 +106,7 @@ def solve_angles_ILP(G):
 		constraint = 0
 		iterator = Subsets(G.edges_incident(v),2)
 		for pair in iterator:
-			l = [pair[0], pair[1]]
-			l.sort()
-			angle = (l[0], l[1])
-			#print w[pair], w[(pair[0], pair[1])]
+			angle = pair_to_angle([pair[0], pair[1]])
 			p.add_constraint(w[angle]<=1)
 			constraint = constraint + w[angle]
 		p.add_constraint(constraint<=2)
@@ -122,9 +119,7 @@ def solve_angles_ILP(G):
 			incident = G.edges_incident(e[cont])
 			for i in incident:
 				if (e != i):
-					l = [e, i]
-					l.sort()
-					angle = (l[0], l[1])
+					angle = pair_to_angle([e, i])
 					constraint = constraint + w[angle]
 			p.add_constraint(constraint<=1)
 	
@@ -143,6 +138,10 @@ def solution_interpreter(solution):
 
 	print disjointSet.number_of_subsets()
 	return disjointSet
+
+def pair_to_angle(pair):
+	l.sort()
+	return angle = (l[0], l[1])
 
 """
 G = graphs.RandomRegular(5, 8)
