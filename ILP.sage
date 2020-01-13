@@ -123,12 +123,43 @@ def solve_angles_ILP(G):
 					constraint = constraint + w[angle]
 			p.add_constraint(constraint<=1)
 	
-	
 	#print p
 	p.solve()
 	solution = p.get_values(w).items()
 	disjointSet = solution_interpreter(solution)
 
+	cont=0
+#	H = Graph()
+	for i in disjointSet:
+		for e in i:
+#			H.add_edge(e[0],e[1],cont)
+			G.set_edge_label(e[0],e[1],cont)
+		cont += 1
+	if disjointSet.number_of_subsets() > G.order()/2:
+		isP5Dec=False
+	else:
+		isP5Dec=isPathDecomposition(G)
+	
+	cont2=0
+	while isP5Dec==False:
+		cont2+=1
+		print cont2
+		for edges in disjointSet:
+	#aqui resolvi fixar 5, mas podemos modificar no futuro
+			finalConstraints=final_constraints(edges,5,w)
+			for constraint in finalConstraints:
+				p.add_constraint(constraint[0] <= constraint[1])
+		cont=0
+	#	H = Graph()
+		for i in disjointSet:
+			for e in i:
+	#			H.add_edge(e[0],e[1],cont)
+				G.set_edge_label(e[0],e[1],cont)
+			cont += 1
+		if disjointSet.number_of_subsets() > G.order()/2:
+			isP5Dec=False
+		else:
+			isP5Dec=isPathDecomposition(G)
 def solution_interpreter(solution):
 	listSetted = []
 	disjointSet = DisjointSet(G.edges())
@@ -139,9 +170,14 @@ def solution_interpreter(solution):
 	print disjointSet.number_of_subsets()
 	return disjointSet
 
+# Consideramos que pair é um array
 def pair_to_angle(pair):
-	l.sort()
-	return angle = (l[0], l[1])
+	pair.sort()
+	return (pair[0], pair[1])
+	
+def pair_to_edge(pair):
+	pair.sort()
+	return (pair[0],pair[1],None)
 
 """
 G = graphs.RandomRegular(5, 8)
@@ -156,21 +192,92 @@ for i in dSet:
 H.show(color_by_label=true, layout="circular")
 """
 
-
+def path_constraint(vertices,w):
+	constraint=0
+	l=len(vertices)
+	for i in range(0,l-2):
+		edge1 = pair_to_edge([vertices[i],vertices[i+1]])
+		edge2 = pair_to_edge([vertices[i+1],vertices[i+2]])
+		angle=pair_to_angle([edge1,edge2])
+		constraint=constraint+w[angle]
+	return constraint
 
 def cycle_constraint(vertices,w):
 	constraint=0
-	first=vertices[0]
-	second=vertices[1]
 	l=len(vertices)
-	for i in range(0,l-2)
-		if vertices[i] < vertices[i+1]:
-			edge1 = (vertices[i],vertices
-		angle=(edge1,edge2)
+	for i in range(0,l-2):
+		edge1 = pair_to_edge([vertices[i],vertices[i+1]])
+		edge2 = pair_to_edge([vertices[i+1],vertices[i+2]])
+		angle=pair_to_angle([edge1,edge2])
 		constraint=constraint+w[angle]
+	#ângulos "artificiais"
+	edge1 = pair_to_edge([vertices[l-2],vertices[l-1]])
+	edge2 = pair_to_edge([vertices[l-1],vertices[0]])
+	angle=pair_to_angle([edge1,edge2])
+	constraint=constraint+w[angle]
+	edge1 = pair_to_edge([vertices[l-1],vertices[0]])
+	edge2 = pair_to_edge([vertices[0],vertices[1]])
+	angle=pair_to_angle([edge1,edge2])
+	constraint=constraint+w[angle]
+	return constraint
 
-def constraint(edges,k,w):
+# suponha que H seja um caminho de order 6, i.e., com 6 vértices
+#def path_constraint(H,w):
+#	constraint=0
+#	for v in H.vertices():
+#		if H.degree(v) == 2:
+#			angle=pair_to_angle(H.edges_incident(v))
+#			constraint=constraint+w[angle]
+#	return constraint
+
+#suponha que H é um caminho qualquer, k é o comprimento/número de arestas que quero particionar H
+def paths_of_length(H,k):
+	result=[]
+	o=H.order()
+	if o < k+1:
+		return result
+	ends=[]
+
+	for v in H.vertices():
+		if H.degree(v) == 1:
+			ends.append(v)
+	vertex_list=H.shortest_path(ends[0],ends[1])
+	return subpaths(vertice_list,k)
+	
+def subpaths(vertice_list,k):
+	o= len(vertice_list)
+	result=[]
+	if o<=k:
+		return result
+	for i in range(o-k):
+		path=[]
+		for j in range(i,i+k+1):
+			path.append(vertex_list[j])
+		result.append(path)
+	return result		
+
+# k denota o comprimento no qual queremos decompor o grafo, i.e., queremos encontrar uma decomposição em caminhos de comprimento k
+def final_constraints(edges,k,w):
 	H=Graph(edges)
+	constraints=[]
+	if isPath(H):
+# a próxima função quebra H em caminhos de comprimento k+1
+		subpaths=paths_of_length(H,k+1)
+		for path in subpaths:
+			print "found path"
+			constraints.append((path_constraint(path,w),k-1))
+		return constraints
+		
 	basis=H.cycle_basis()
+	for cycle in basis:
+		if len(cycle) <= k+1:
+			print "found small cycle" + str(cycle)
+			constraints.append((cycle_constraint(cycle,w),len(cycle)-2))
+		else:
+			subpaths=subpaths(cycle,k+1)
+			for path in subpaths:
+				print "found long cycle"
+				constraints.append((path_constraint(path,w),k-1))
+	return constraints
 	
 
