@@ -41,58 +41,6 @@ def solve_direct_ILP(G):
 	fim = time.time()
 	print('tempo de execução' + str(fim-inicio))
 	
-def solve_direct_ILP_strong(G):
-	solved=False
-	inicio = time.time()
-	p=MixedIntegerLinearProgram(maximization=True,solver="GLPK")
-	w=p.new_variable(binary=True)
-	objective=0
-	dic={}
-	for e in G.edges():
-		dic[e]=[]
-	count=0
-	for x in Subsets(G.edges(),5):
-		H=Graph()
-		H.add_edges(x)
-		solve=False
-		if isPath(H):
-			count+=1
-			solve=True
-			objective=objective+w[x]
-			for e in x:
-				dic[e].append(x)
-			if count%1000==0:
-				print count
-				for e in dic:
-					constraint=0
-					for y in dic[e]:
-						constraint=constraint+w[y]
-					if dic[e]!=[]:
-						p.add_constraint(constraint<=1)
-		if count%1000==0 and solve==True:
-			p.set_objective(objective)
-			p.solve()
-			print 'resolveu'
-			if p.get_objective_value()==G.order()/2:
-				solved=True
-				break
-		
-	if solved==False:
-		p.set_objective(objective)
-		p.solve()
-	sol=p.get_values(w).items()
-	setted=[]
-	for x in sol:
-		if x[1]==1.0:
-			setted.append(x[0])
-	cor=0
-	for x in setted:
-		for e in x:
-			G.set_edge_label(e[0],e[1],cor)
-		cor+=1
-	fim = time.time()
-	print('tempo de execução' + str(fim-inicio))
-
 def basic_model(G):
 	inicio = time.time()
 	p = MixedIntegerLinearProgram(maximization=True,solver="GLPK")
@@ -106,7 +54,6 @@ def basic_model(G):
 		iterator = Subsets(G.edges_incident(v),2)
 		for pair in iterator:
 			angle = pair_to_angle([pair[0], pair[1]])
-#			p.add_constraint(w[angle]<=1)
 			constraint = constraint + w[angle]
 		p.add_constraint(constraint<=floor(G.degree(v)/2))
 		p.add_constraint(constraint>=floor(G.degree(v)/2))
@@ -125,49 +72,8 @@ def basic_model(G):
 			p.add_constraint(constraint<=1)
 		p.add_constraint(edge_must_be_in_angle>=1)
 	return p,w			
-			
+
 def solve_angles_ILP(G):
-	
-	p,w = basic_model(G)
-	#print p
-	p.solve()
-	solution = p.get_values(w).items()
-	disjointSet = solution_interpreter(solution)
-
-	cont=0
-#	H = Graph()
-	for i in disjointSet:
-		for e in i:
-#			H.add_edge(e[0],e[1],cont)
-			G.set_edge_label(e[0],e[1],cont)
-		cont += 1
-	if disjointSet.number_of_subsets() > G.order()/2:
-		isP5Dec=False
-	else:
-		isP5Dec=isPathDecomposition(G)
-	
-	cont2=0
-	while isP5Dec==False:
-		cont2+=1
-		print cont2
-		for edges in disjointSet:
-	#aqui resolvi fixar 5, mas podemos modificar no futuro
-			finalConstraints=final_constraints(edges,5,w)
-			for constraint in finalConstraints:
-				p.add_constraint(constraint[0] <= constraint[1])
-		cont=0
-	#	H = Graph()
-		for i in disjointSet:
-			for e in i:
-	#			H.add_edge(e[0],e[1],cont)
-				G.set_edge_label(e[0],e[1],cont)
-			cont += 1
-		if disjointSet.number_of_subsets() > G.order()/2:
-			isP5Dec=False
-		else:
-			isP5Dec=isPathDecomposition(G)
-
-def solve_angles_ILP_ALT(G):
 	p,w = basic_model(G)
 	p.solve()
 	solution = p.get_values(w).items()
@@ -286,11 +192,7 @@ def solution_cycles(solution):
 		for u in G.vertices():
 			count[u]=0
 			position[u]=-1
-			
-#	disjointSet_angles= DisjointSet(setted_angles)
-#	for e in dic:
-#		if len(dic[e]) == 2:
-#			disjointSet_angles.union(dic[e][0],dic[e][1])
+
 	return cycles
 	
 # Consideramos que pair é um array
@@ -371,25 +273,6 @@ def path_constraint(vertices,w):
 		constraint=constraint+w[angle]
 	return constraint
 
-# Decidir se vertices contém uma ou duas vezes o primeiro vértice
-def cycle_constraint(vertices,w):
-	constraint=0
-	l=len(vertices)
-	for i in range(0,l-2):
-		edge1 = pair_to_edge([vertices[i],vertices[i+1]])
-		edge2 = pair_to_edge([vertices[i+1],vertices[i+2]])
-		angle=pair_to_angle([edge1,edge2])
-		constraint=constraint+w[angle]
-	#ângulos "artificiais"
-	edge1 = pair_to_edge([vertices[l-2],vertices[l-1]])
-	edge2 = pair_to_edge([vertices[l-1],vertices[0]])
-	angle=pair_to_angle([edge1,edge2])
-	constraint=constraint+w[angle]
-	edge1 = pair_to_edge([vertices[l-1],vertices[0]])
-	edge2 = pair_to_edge([vertices[0],vertices[1]])
-	angle=pair_to_angle([edge1,edge2])
-	constraint=constraint+w[angle]
-	return constraint
 	
 # a variável cycle contém o primeiro vértice duas vezes (no começo e no final)
 def cycle_constraint_extended(cycle,w):
