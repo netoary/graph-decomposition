@@ -166,6 +166,41 @@ def solve_angles_ILP(G):
 			isP5Dec=False
 		else:
 			isP5Dec=isPathDecomposition(G)
+
+def solve_angles_ILP_ALT(G):
+	p,w = basic_model(G)
+	p.solve()
+	solution = p.get_values(w).items()
+	cycles = solution_cycles(solution)
+	noCycles = False
+	if cycles == []:
+		noCycles = True
+
+	cont2=0
+	while noCycles==False:
+		for c in cycles:
+			p.add_constraint(cycle_constraint_extended(c, w) <= len(c)-3)
+
+		p.solve()
+		solution = p.get_values(w).items()
+		cycles = solution_cycles(solution)
+		if cycles == []:
+			noCycles = True
+	
+	disjointSet = solution_interpreter(solution)
+	cont=0
+	for i in disjointSet:
+		for e in i:
+			G.set_edge_label(e[0],e[1],cont)
+		cont += 1
+	if disjointSet.number_of_subsets() > G.order()/2:
+		isP5Dec=False
+	else:
+		isP5Dec=isPathDecomposition(G)
+
+	print isP5Dec
+	
+
 def solution_interpreter(solution):
 	disjointSet = DisjointSet(G.edges())
 	for setted in solution:
