@@ -26,7 +26,7 @@ def solve_direct_ILP(G):
 		for x in dic[y]:
 			constraint=constraint+w[x]
 		p.add_constraint(constraint<=1)
-	print p
+
 	p.solve()
 	sol=p.get_values(w).items()
 	setted=[]
@@ -39,7 +39,7 @@ def solve_direct_ILP(G):
 			G.set_edge_label(e[0],e[1],cor)
 		cor+=1
 	fim = time.time()
-	print('tempo de execução' + str(fim-inicio))
+	print('tempo de execução ' + str(fim-inicio))
 	
 def basic_model(G):
 	inicio = time.time()
@@ -74,48 +74,50 @@ def basic_model(G):
 	return p,w			
 
 def solve_angles_ILP(G):
+	inicio = time.time()
 	p,w = basic_model(G)
 	p.solve()
 	solution = p.get_values(w).items()
-	cycles = solution_cycles(solution)
-	noCycles = False
-	if cycles == []:
-		noCycles = True
-
+	#aqui setei (2k+1) = 5
+	cycles, paths = solution_cycles(solution, 5)
+	noCyclesNPaths = False
+	if cycles == []  and paths == []:
+		noCyclesNPaths = True
+	
 	cont2=0
-	while noCycles==False:
+	while noCyclesNPaths==False:
 		for c in cycles:
 			p.add_constraint(cycle_constraint_extended(c, w) <= len(c)-3)
-
+		for path in paths:
+			#aqui setei (2k+1) = 5
+			p.add_constraint(path_constraint(path, w) <= 4)
 		p.solve()
 		solution = p.get_values(w).items()
-		cycles = solution_cycles(solution)
-		if cycles == []:
-			noCycles = True
+		cycles, paths = solution_cycles(solution, 5)
+		#print str(cycles) + " ? " + str(paths)
+		if cycles == [] and paths == []:
+			noCyclesNPaths = True
 	
 	disjointSet = solution_interpreter(solution)
 	cont=0
+	H = Graph(G)
 	for i in disjointSet:
 		for e in i:
-			G.set_edge_label(e[0],e[1],cont)
+			H.set_edge_label(e[0],e[1],cont)
 		cont += 1
-	if disjointSet.number_of_subsets() > G.order()/2:
-		isP5Dec=False
-	else:
-		isP5Dec=isPathDecomposition(G)
 
-	print isP5Dec
-	
+	fim = time.time()
+	print('tempo de execução ' + str(fim-inicio))
+	return H
 
 def solution_interpreter(solution):
 	disjointSet = DisjointSet(G.edges())
 	for setted in solution:
 		if setted[1] == 1.0:
 			disjointSet.union(setted[0][0],setted[0][1])
-	print disjointSet.number_of_subsets()
 	return disjointSet
 	
-def solution_cycles(solution):
+def solution_cycles(solution, k):
 	disjointSet = DisjointSet(G.edges())
 	setted_angles=[]
 	dic={}
@@ -167,9 +169,10 @@ def solution_cycles(solution):
 			sequences.append(new_sequence)
 			
 	
-	count=[]
-	cycles=[]
-	position=[]
+	count = []
+	cycles = []
+	paths = []
+	position = []
 	for v in G.vertices():
 		count.append(0)
 		position.append(-1)
@@ -177,23 +180,26 @@ def solution_cycles(solution):
 	for sequence in sequences:
 		v=sequence[0]
 		pos=0
+		isPath = True
 		for v in sequence:
 			if count[v]==0:
 				position[v]=pos
 			else:
-
 				cycle=[]
+				isPath = False
 				for u in range(position[v],pos+1):
 					cycle.append(sequence[u])
 				cycles.append(cycle)
 				position[v]=pos
 			count[v]+=1
 			pos+=1
+		if (isPath == True and len(sequence) > (k+1)):
+			paths.append(sequence)
 		for u in G.vertices():
 			count[u]=0
 			position[u]=-1
 
-	return cycles
+	return cycles, paths
 	
 # Consideramos que pair é um array
 def pair_to_angle(pair):
@@ -302,7 +308,7 @@ def paths_of_length(H,k):
 	for v in H.vertices():
 		if H.degree(v) == 1:
 			ends.append(v)
-	vertex_list=H.shortest_path(ends[0],ends[1])
+	vertice_list=H.shortest_path(ends[0],ends[1])
 	return subpaths(vertice_list,k)
 	
 def subpaths(vertice_list,k):
@@ -313,7 +319,7 @@ def subpaths(vertice_list,k):
 	for i in range(o-k):
 		path=[]
 		for j in range(i,i+k+1):
-			path.append(vertex_list[j])
+			path.append(vertice_list[j])
 		result.append(path)
 	return result		
 
@@ -322,23 +328,11 @@ def final_constraints(edges,k,w):
 	H=Graph(edges)
 	constraints=[]
 	if isPath(H):
-# a próxima função quebra H em caminhos de comprimento k+1
+		# a próxima função quebra H em caminhos de comprimento k+1
 		subpaths=paths_of_length(H,k+1)
 		for path in subpaths:
-			print "found path"
 			constraints.append((path_constraint(path,w),k-1))
 		return constraints
-		
-	basis=H.cycle_basis()
-	for cycle in basis:
-		if len(cycle) <= k+1:
-			print "found small cycle" + str(cycle)
-			constraints.append((cycle_constraint(cycle,w),len(cycle)-2))
-		else:
-			subpaths=subpaths(cycle,k+1)
-			for path in subpaths:
-				print "found long cycle"
-				constraints.append((path_constraint(path,w),k-1))
 	return constraints
 	
 
