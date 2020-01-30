@@ -1,9 +1,11 @@
 import time
+import sage_numerical_backends_cplex.cplex_backend as cplex_backend, sage.numerical.backends as backends, sys
+sys.modules['sage.numerical.backends.cplex_backend'] = backends.cplex_backend = cplex_backend
 
 load('functions.sage')
 def solve_direct_ILP(G):
 	inicio = time.time()
-	p = MixedIntegerLinearProgram(maximization=True,solver="GLPK")
+	p = MixedIntegerLinearProgram(maximization=True,solver="CPLEX")
 	count = 0
 	w = p.new_variable(binary=True)
 	constraint = 0
@@ -43,7 +45,7 @@ def solve_direct_ILP(G):
 	
 def basic_model(G):
 	inicio = time.time()
-	p = MixedIntegerLinearProgram(maximization=True,solver="GLPK")
+	p = MixedIntegerLinearProgram(maximization=True,solver='CPLEX')
 	count = 0
 	w = p.new_variable(binary=True)
 	dic={}
@@ -84,7 +86,7 @@ def solve_angles_ILP(G):
 	if cycles == []  and paths == []:
 		noCyclesNPaths = True
 	
-	cont2=0
+	cont_numb_of_solves=0
 	while noCyclesNPaths==False:
 		for c in cycles:
 			p.add_constraint(cycle_constraint_extended(c, w) <= len(c)-3)
@@ -92,6 +94,11 @@ def solve_angles_ILP(G):
 			#aqui setei (2k+1) = 5
 			p.add_constraint(path_constraint(path, w) <= 4)
 		p.solve()
+		print(p)
+		cont_numb_of_solves+=1
+		if cont_numb_of_solves%100==0:
+			print(cont_numb_of_solves)
+			print(p)
 		solution = p.get_values(w).items()
 		cycles, paths = solution_cycles(solution, 5)
 		#print str(cycles) + " ? " + str(paths)
@@ -107,8 +114,9 @@ def solve_angles_ILP(G):
 		cont += 1
 
 	fim = time.time()
-	print('tempo de execução ' + str(fim-inicio))
-	return H
+	print('tempo de execução: ' + str(fim-inicio))
+	print('Number of solves: ' + str(cont_numb_of_solves))
+	return H,cont_numb_of_solves
 
 def solution_interpreter(solution):
 	disjointSet = DisjointSet(G.edges())
