@@ -219,7 +219,7 @@ PROGRAMA LINEAR INTEIRO
 					na verdade, exatamente dois ângulos vão receber 1
 			- interpretador de solução do PLI
 				função que tranforma o conjunto de ângulos setados (com 1) em decomposição em trilhas
-					seria ideal usar algo como union-find (http://doc.sagemath.org/html/en/reference/sets/sage/sets/disjoint_set.html)
+					seria ideal usar algo como union-find
 			- encontrador de problemas na decomposição
 				função que recebe uma decomposição e pergunta para cada elemento se ele é um caminho de comprimento 5
 					se todos os elementos forem caminhos de comprimento 5, então acabou, a decomposição é boa
@@ -297,3 +297,38 @@ INTELIGENCIA PARTE 2
 			-	Podemos fazer uma busca em largura com profundidade no máximo d, para encontrar os vértices desse grafo.
 	-	pegamos os autovalores como acima desse subgrafo local.
 	-	esses vetores de autovalores são os nossos estados
+	
+INTELIGÊNCIA PARTE 3
+	-	Precisamos de um invariante de grafo (ou de uma matriz especial, a seguir)
+		-	que é um objeto que não muda quando mudamos os nomes dos vértices
+			ex: polinômio característico
+			ex: autovalores
+
+	-	Esse invariante tem que levar em consideração a decomposição corrente 
+			podemos fazer 
+		ideia:	
+			para cada vértice u, definir um subgrafo local sub_d(u) de distância d 
+				esse grafo contém todos os vertíces de G que estão à distância até d de u
+				acho que tem que ser induzido, ou seja, que contém todas as arestas de G que ligam os vértices dele.
+			tomamos o grafo linha H_u de sub_d(u) 
+				o grafo que tem como vértices as arestas de sub_d(u)
+				e como arestas os ângulos de subd_d(u)
+				e tem como pesos 1 se o angulo está setado, e 0 se não estiver setado.
+		 	tomamos a matriz A_u de incidência com pesos de H_u (H.weighted_adjacency_matrix())
+		 	tomamos os autovalores (eigenvalues) de A_u
+		 		esses autovalores são os parâmetros de cada vértice de G
+
+	-	Precisamos gerar um banco de dados que atribui a cada conjunto de parâmetros uma nota
+
+	-	Aí treinamos uma árvore de decisão para aprender essa tabela e extrapolar
+	
+	-	Precisamos fazer testes com valores para d diferentes
+			provavelmente nossa tabela tem que ser gerada a partir de grafos com muitos vértices, tipo 100
+
+		Gerar a tabela, é natural que demore, porque temos que fazer todas as trocas possíveis
+		O número de subgrafos locais é da ordem de 5^(d+1).
+		E isso é exatamente o tamanho (número de linhas) da tabela
+		
+		Talvez antes temos que fazer um dicionário de parâmetros, e atualizar os valores aos poucos
+		
+	
