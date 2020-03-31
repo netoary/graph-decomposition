@@ -438,7 +438,10 @@ def random_search_dic(graph, currentState = [], decompositions={}, oldDecomposit
 		print("hang ", hangingEdges, decompositions[currentState])
 		return decompositions, True, reward
 	pMoves = possibleMoves(graph, hangingEdges)
-	oldDecompositions.append(graph.edges())
+	new_edges=[]
+	for e in graph.edges():
+		new_edges.append(e)
+	oldDecompositions.append(new_edges)
 	for episodes in range(100):
 		if pMoves == []:
 			break
@@ -510,12 +513,15 @@ def local_random_search_dic(graph, d, currentState = [], decompositions={}, oldD
 	hangingEdges = takeHangingEdges(graph)
 #	print("took hanging edges")
 	if (hangingEdges == True):
-		print("is a decomposition")
+#		print("is a decomposition")
 		reward = 1
 #		decompositions[currentState] = reward
 		return decompositions, True, reward
 	pMoves = possibleMoves(graph, hangingEdges)
-	oldDecompositions.append(graph.edges())
+	new_edges=[]
+	for e in graph.edges():
+		new_edges.append(e)
+	oldDecompositions.append(new_edges)
 	for episodes in range(100):
 #		print("entered episodes")
 		if pMoves == []:
@@ -535,6 +541,8 @@ def local_random_search_dic(graph, d, currentState = [], decompositions={}, oldD
 		
 		if (tupleA in decompositions) == False:
 			decompositions[tupleA]=[0,1]
+		else:
+			decompositions[tupleA][1]+=1
 #			print("added item to dic")
 		
 #		if not(poly in decompositions):
@@ -543,13 +551,9 @@ def local_random_search_dic(graph, d, currentState = [], decompositions={}, oldD
 		dec = graph.edges()
 		if (dec in oldDecompositions):
 			unmove(graph, i)
-			print("entrou aqui nessa")
-			print(decompositions)
 		else:
-			print("mas antes entrou aqui")
 			decompositions, var, reward  = local_random_search_dic(graph, d, poly, decompositions, oldDecompositions)
 			if (var==True):
-				print("ENTROU AQUI CARAI")
 #				reward = reward/len(pMoves)
 #				decompositions[poly] = reward
 				decompositions[tupleA][0]+=1
@@ -560,7 +564,7 @@ def local_random_test_dic(G):
 	decompositions = {}
 	b = False
 	r = 0
-	d = 2
+	d = 1
 	for M in G.perfect_matchings():
 		for i in M:
 			G.delete_edge(i)
@@ -586,7 +590,7 @@ def local_random_test_dic(G):
 		A = X.weighted_adjacency_matrix()
 		poly = A.charpoly()
 		decompositions, b, r  = local_random_search_dic(H, d, poly, decompositions, [])
-		
+	
 		if b:
 			break
 	
