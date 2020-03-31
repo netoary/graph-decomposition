@@ -429,7 +429,6 @@ def random_search_dic(graph, currentState = [], decompositions={}, oldDecomposit
 	var = False
 	reward = 0
 	episodes = 0
-
 	hangingEdges = takeHangingEdges(graph)
 	if (hangingEdges == True):
 		reward = 1
@@ -439,6 +438,8 @@ def random_search_dic(graph, currentState = [], decompositions={}, oldDecomposit
 	pMoves = possibleMoves(graph, hangingEdges)
 	oldDecompositions.append(graph.edges())
 	for episodes in range(100):
+		if pMoves == []:
+			break
 		i = pMoves[floor(uniform(0, len(pMoves)))]
 		move(graph, i)
 		angles = setted_angles(graph)
@@ -512,6 +513,8 @@ def local_random_search_dic(graph, d, currentState = [], decompositions={}, oldD
 	pMoves = possibleMoves(graph, hangingEdges)
 	oldDecompositions.append(graph.edges())
 	for episodes in range(100):
+		if pMoves == []:
+			break
 		i = pMoves[floor(uniform(0, len(pMoves)))]
 		move(graph, i)
 		u = conection_vertex(i)
@@ -521,12 +524,10 @@ def local_random_search_dic(graph, d, currentState = [], decompositions={}, oldD
 		A = X.weighted_adjacency_matrix()
 		poly = A.charpoly()
 		
-		print(decompositions)
-		decompositions[poly] += reward
-
+		if not(poly in decompositions):
+			decompositions[poly] = reward
 		
 		dec = graph.edges()
-		print(dec)
 		if (dec in oldDecompositions):
 			unmove(graph, i)
 		else:
