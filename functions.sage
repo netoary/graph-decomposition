@@ -104,11 +104,13 @@ def canonicalDecomposition(graph, M = [], petersen = []):
 	labeling = len(graph)
 	if (len(M) != labeling/2):
 		return False
+	'''
 	for i in M:
 		graph.delete_edge(i)
 	for i in range(len(petersen)):
 		for j in petersen[i]:
 			graph.set_edge_label(j[0], j[1], labeling + i)
+	'''
 	cont = 0
 	for i in M:
 		x = i[0]
@@ -263,5 +265,318 @@ def unmove(graph, pair):
 	x2,y2,l2 = f
 	graph.set_edge_label(x1,y1,l1)
 	graph.set_edge_label(x2,y2,l2)
+
+
+def setted_angles(G):
+	result=[]
+	for u in G.vertices():
+		for e in G.edges_incident(u):
+			for f in G.edges_incident(u):
+				if e != f:
+					if e[2]==f[2]:
+						result.append((e,f,1))
+					else:
+						result.append((e,f,-1))
+	return result
+
+def local_subgraph(G,u, d):
+	distances=G.distance_all_pairs()[u]
+	sub_d = []
+	for i in distances:
+		if (distances[i] <= d):
+			sub_d.append(i)
+	H = G.subgraph(sub_d)
+	return H
+
+
+
+def full_search(graph, cont=0, oldDecompositions=[]):
+	#recursion that runs through the graph until it finds a path decomposition
+	#returns (moves, True) if it finds, otherwise (moves, False)
+	mov=[]
+	hangingEdges = takeHangingEdges(graph)
+	if (hangingEdges == True):
+		#print("Old decompositions", len(oldDecompositions))
+		cont = cont + 1
+		return cont
+
+	pMoves = possibleMoves(graph, hangingEdges)
+	var = False
+	oldDecompositions.append(graph.edges())
+	for i in pMoves:
+		move(graph, i)
+		dec = graph.edges()
+		if (dec in oldDecompositions):
+			unmove(graph, i)
+		else:
+			cont = full_search(graph, cont, oldDecompositions)
+
+	return cont
+
+
+
+def full_test(G):
+	b = []
+	for M in G.perfect_matchings():
+		for i in M:
+			G.delete_edge(i)
+		petersen = G.two_factor_petersen()
+		for i in M:
+			G.add_edge(i)
+		H = Graph(G)
+		canonicalDecomposition(H, M, petersen)
+		cont = full_search(H, 0, [])
+		b.append(cont)
+	
+		aux0 = petersen[0]
+		aux1 = petersen[1]
+		petersen = [aux1, aux0]
+		H = Graph(G)
+		canonicalDecomposition(H, M, petersen)
+		cont = full_search(H, 0, [])
+		b.append(cont)
+	
+	return b
+
+###########
+
+decompositions = {}
+
+def full_search_dic(graph, currentState = [], decompositions={}, oldDecompositions=[]):
+	#recursion that runs through the graph until it finds a path decomposition
+	#returns (moves, True) if it finds, otherwise (moves, False)
+	mov=[]
+	hangingEdges = takeHangingEdges(graph)
+	if (hangingEdges == True):
+		#print("Old decompositions", len(oldDecompositions))
+		decompositions[currentState] = 10
+		return decompositions
+
+	pMoves = possibleMoves(graph, hangingEdges)
+	var = False
+	oldDecompositions.append(graph.edges())
+	for i in pMoves:
+		move(graph, i)
+		angles = setted_angles(graph)
+		X = Graph(angles)
+		A = X.weighted_adjacency_matrix()
+		poly = A.charpoly()
+		if not(poly in decompositions):
+			decompositions[poly] = 0
+		else:
+			print('repetido')
+		dec = graph.edges()
+		if (dec in oldDecompositions):
+			unmove(graph, i)
+		else:
+			decompositions = full_search_dic(graph, poly, decompositions, oldDecompositions)
+
+	return decompositions
+
+
+def full_test_dic(G):
+	b = {}
+	for M in G.perfect_matchings():
+		for i in M:
+			G.delete_edge(i)
+		petersen = G.two_factor_petersen()
+		for i in M:
+			G.add_edge(i)
+		H = Graph(G)
+		canonicalDecomposition(H, M, petersen)
+		angles = setted_angles(H)
+		X = Graph(angles)
+		A = X.weighted_adjacency_matrix()
+		poly = A.charpoly()
+		b = full_search_dic(H, poly, b, [])
+		
+	
+		aux0 = petersen[0]
+		aux1 = petersen[1]
+		petersen = [aux1, aux0]
+		H = Graph(G)
+		canonicalDecomposition(H, M, petersen)
+		angles = setted_angles(H)
+		X = Graph(angles)
+		A = X.weighted_adjacency_matrix()
+		poly = A.charpoly()
+		b = full_search_dic(H, poly, b, [])
+	return b
+
+'''
+decompositions = {}
+
+G = graphs.RandomRegular(5, 16)
+
+decompositions = full_test_dic(G) 
+
+cont = 0
+
+for i in decompositions:
+    if (decompositions[i] == 10):
+	    cont += 1
+         
+cont
+
+len(decompositions)
+'''
+###random list choose
+#move = pMoves[floor(uniform(0, len(list1)))]
+
+def random_search_dic(graph, currentState = [], decompositions={}, oldDecompositions=[]):
+	#recursion that runs through the graph until it finds a path decomposition
+	#returns (moves, True) if it finds, otherwise (moves, False)
+	var = False
+	reward = 0
+	episodes = 0
+
+	hangingEdges = takeHangingEdges(graph)
+	if (hangingEdges == True):
+		reward = 1
+		decompositions[currentState] = reward
+		print("hang ", hangingEdges, decompositions[currentState])
+		return decompositions, True, reward
+	pMoves = possibleMoves(graph, hangingEdges)
+	oldDecompositions.append(graph.edges())
+	for episodes in range(100):
+		i = pMoves[floor(uniform(0, len(pMoves)))]
+		move(graph, i)
+		angles = setted_angles(graph)
+		X = Graph(angles)
+		A = X.weighted_adjacency_matrix()
+		poly = A.charpoly()
+		if not(poly in decompositions):
+			decompositions[poly] = reward
+		dec = graph.edges()
+		if (dec in oldDecompositions):
+			unmove(graph, i)
+		else:
+			decompositions, var, reward  = random_search_dic(graph, poly, decompositions, oldDecompositions)
+			if (var==True):
+				reward = reward/len(pMoves)
+				decompositions[poly] = reward
+				return decompositions, var, reward
+
+	return decompositions, var, reward
+
+def random_test_dic(G):
+	d = {}
+	b = False
+	r = 0
+	for M in G.perfect_matchings():
+		for i in M:
+			G.delete_edge(i)
+		petersen = G.two_factor_petersen()
+		for i in M:
+			G.add_edge(i)
+		H = Graph(G)
+		canonicalDecomposition(H, M, petersen)
+		angles = setted_angles(H)
+		X = Graph(angles)
+		A = X.weighted_adjacency_matrix()
+		poly = A.charpoly()
+		d, b, r = random_search_dic(H, poly, d, [])
+		
+	
+		aux0 = petersen[0]
+		aux1 = petersen[1]
+		petersen = [aux1, aux0]
+		H = Graph(G)
+		canonicalDecomposition(H, M, petersen)
+		angles = setted_angles(H)
+		X = Graph(angles)
+		A = X.weighted_adjacency_matrix()
+		poly = A.charpoly()
+		d, b, r  = random_search_dic(H, poly, d, [])
+		
+	
+	return b, d
+
+"""
+start = time.time()
+b, d = random_test_dic(G)
+end = time.time()"""
+
+def local_random_search_dic(graph, d, currentState = [], decompositions={}, oldDecompositions=[]):
+	#recursion that runs through the graph until it finds a path decomposition
+	#returns (moves, True) if it finds, otherwise (moves, False)
+	var = False
+	reward = 0
+	episodes = 0
+
+	hangingEdges = takeHangingEdges(graph)
+	if (hangingEdges == True):
+		reward = 1
+		decompositions[currentState] = reward
+		return decompositions, True, reward
+	pMoves = possibleMoves(graph, hangingEdges)
+	oldDecompositions.append(graph.edges())
+	for episodes in range(100):
+		i = pMoves[floor(uniform(0, len(pMoves)))]
+		move(graph, i)
+		u = conection_vertex(i)
+		subgraph = local_subgraph(graph,u, d)
+		angles = setted_angles(subgraph)
+		X = Graph(angles)
+		A = X.weighted_adjacency_matrix()
+		poly = A.charpoly()
+		
+		print(decompositions)
+		decompositions[poly] += reward
+
+		
+		dec = graph.edges()
+		print(dec)
+		if (dec in oldDecompositions):
+			unmove(graph, i)
+		else:
+			decompositions, var, reward  = local_random_search_dic(graph, d, poly, decompositions, oldDecompositions)
+			if (var==True):
+				reward = reward/len(pMoves)
+				decompositions[poly] = reward
+				return decompositions, var, reward
+	return decompositions, var, reward
+
+def local_random_test_dic(G):
+	decompositions = {}
+	b = False
+	r = 0
+	d = 2
+	for M in G.perfect_matchings():
+		for i in M:
+			G.delete_edge(i)
+		petersen = G.two_factor_petersen()
+		for i in M:
+			G.add_edge(i)
+		H = Graph(G)
+		canonicalDecomposition(H, M, petersen)
+		angles = setted_angles(H)
+		X = Graph(angles)
+		A = X.weighted_adjacency_matrix()
+		poly = A.charpoly()
+		d, b, r = local_random_search_dic(H, d, poly, decompositions, [])
+		
+	
+		aux0 = petersen[0]
+		aux1 = petersen[1]
+		petersen = [aux1, aux0]
+		H = Graph(G)
+		canonicalDecomposition(H, M, petersen)
+		angles = setted_angles(H)
+		X = Graph(angles)
+		A = X.weighted_adjacency_matrix()
+		poly = A.charpoly()
+		d, b, r  = local_random_search_dic(H, d, poly, decompositions, [])
+		
+	
+	return b
+
+def conection_vertex(pair):
+	if (pair[0][0]==pair[1][0]):
+		return pair[0][0]
+	elif (pair[0][0]==pair[1][1]):
+		return pair[0][0]
+	else:
+		return pair[0][1]
 
 # Prossimo passo unificar as buscas ou selecionar as mais importantes
