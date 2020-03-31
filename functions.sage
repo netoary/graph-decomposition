@@ -98,8 +98,10 @@ def canonicalDecomposition(graph, M = [], petersen = []):
 	if M == []:
 		M = graph.matching(algorithm="Edmonds")
 		
+	H=copy(G)
+	H.delete_edges(M)
 	if petersen == []:
-		petersen = graph.two_factor_petersen()
+		petersen = H.two_factor_petersen()
 
 	labeling = len(graph)
 	if (len(M) != labeling/2):
@@ -506,13 +508,16 @@ def local_random_search_dic(graph, d, currentState = [], decompositions={}, oldD
 	episodes = 0
 
 	hangingEdges = takeHangingEdges(graph)
+#	print("took hanging edges")
 	if (hangingEdges == True):
+		print("is a decomposition")
 		reward = 1
-		decompositions[currentState] = reward
+#		decompositions[currentState] = reward
 		return decompositions, True, reward
 	pMoves = possibleMoves(graph, hangingEdges)
 	oldDecompositions.append(graph.edges())
 	for episodes in range(100):
+#		print("entered episodes")
 		if pMoves == []:
 			break
 		i = pMoves[floor(uniform(0, len(pMoves)))]
@@ -521,20 +526,33 @@ def local_random_search_dic(graph, d, currentState = [], decompositions={}, oldD
 		subgraph = local_subgraph(graph,u, d)
 		angles = setted_angles(subgraph)
 		X = Graph(angles)
+		X = X.canonical_label()
 		A = X.weighted_adjacency_matrix()
-		poly = A.charpoly()
+#		print("constructed matrix")
+#		poly = A.charpoly()
+		poly=0
+		tupleA=matrix_to_tuple(A)
 		
-		if not(poly in decompositions):
-			decompositions[poly] = reward
+		if (tupleA in decompositions) == False:
+			decompositions[tupleA]=[0,1]
+#			print("added item to dic")
+		
+#		if not(poly in decompositions):
+#			decompositions[poly] = reward
 		
 		dec = graph.edges()
 		if (dec in oldDecompositions):
 			unmove(graph, i)
+			print("entrou aqui nessa")
+			print(decompositions)
 		else:
+			print("mas antes entrou aqui")
 			decompositions, var, reward  = local_random_search_dic(graph, d, poly, decompositions, oldDecompositions)
 			if (var==True):
-				reward = reward/len(pMoves)
-				decompositions[poly] = reward
+				print("ENTROU AQUI CARAI")
+#				reward = reward/len(pMoves)
+#				decompositions[poly] = reward
+				decompositions[tupleA][0]+=1
 				return decompositions, var, reward
 	return decompositions, var, reward
 
@@ -555,7 +573,7 @@ def local_random_test_dic(G):
 		X = Graph(angles)
 		A = X.weighted_adjacency_matrix()
 		poly = A.charpoly()
-		d, b, r = local_random_search_dic(H, d, poly, decompositions, [])
+		decompositions, b, r = local_random_search_dic(H, d, poly, decompositions, [])
 		
 	
 		aux0 = petersen[0]
@@ -567,10 +585,12 @@ def local_random_test_dic(G):
 		X = Graph(angles)
 		A = X.weighted_adjacency_matrix()
 		poly = A.charpoly()
-		d, b, r  = local_random_search_dic(H, d, poly, decompositions, [])
+		decompositions, b, r  = local_random_search_dic(H, d, poly, decompositions, [])
 		
+		if b:
+			break
 	
-	return b
+	return decompositions,b
 
 def conection_vertex(pair):
 	if (pair[0][0]==pair[1][0]):
@@ -579,5 +599,11 @@ def conection_vertex(pair):
 		return pair[0][0]
 	else:
 		return pair[0][1]
+		
+def matrix_to_tuple(A):
+	result=()
+	for i in A:
+		result+=tuple(i)
+	return result
 
 # Prossimo passo unificar as buscas ou selecionar as mais importantes
