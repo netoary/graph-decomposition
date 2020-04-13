@@ -98,7 +98,7 @@ def canonicalDecomposition(graph, M = [], petersen = []):
 	if M == []:
 		M = graph.matching(algorithm="Edmonds")
 		
-	H=copy(G)
+	H=Graph(graph)
 	H.delete_edges(M)
 	if petersen == []:
 		petersen = H.two_factor_petersen()
@@ -610,4 +610,148 @@ def matrix_to_tuple(A):
 		result+=tuple(i)
 	return result
 
+
+
+#### tentativa número 1 de q learning
+
+def graph_to_tuple(G):
+	angles = setted_angles(G)
+	X = Graph(angles)
+	X = X.canonical_label()
+	A = X.weighted_adjacency_matrix()
+	result=()
+	i = 1
+	for row in A:
+		values = []
+		for value in range(i, len(row)):
+			values.append(row[value])
+		result+=tuple(values)
+		i += 1
+	return result
+
+
+def q_learning(graph, d, epsilon, decompositions={}, oldDecompositions=[]):
+	#recursion that runs through the graph until it finds a path decomposition
+	#returns (moves, True) if it finds, otherwise (moves, False)
+	won = False
+	lost = False
+	reward = 0
+	episodes = 0
+	hangingEdges = takeHangingEdges(graph)
+	
+	if (hangingEdges == True):
+		reward = 1
+		return decompositions, True, False, reward
+	pMoves = possibleMoves(graph, hangingEdges)
+	new_edges=[]
+	for e in graph.edges():
+		new_edges.append(e)
+	oldDecompositions.append(new_edges)
+	for episodes in range(100):
+		if pMoves == []:
+			reward = -1
+			return decompositions, False, True, reward
+		seed = uniform(0, 1)
+		if (seed < epsilon):
+			i = pMoves[floor(seed * len(pMoves))]
+		else:
+			#pegar o proximo movimento que tem maior reward
+			bigger = -99999999999.0
+			#next_action = 0
+			for i in pMoves:
+				move(graph, i)
+				u = conection_vertex(i)
+				subgraph = local_subgraph(graph,u, d)
+				tupleA = graph_to_tuple(subgraph)
+				if (tupleA in decompositions):
+					aux = decompositions[tupleA]
+				else:
+					aux = 0
+				if (aux >= bigger):
+					bigger = aux
+					next_action = i
+				unmove(graph, i)
+			i = next_action
+		move(graph, i)
+		u = conection_vertex(i)
+		subgraph = local_subgraph(graph,u, d)
+
+		tupleA = graph_to_tuple(subgraph)
+		
+		if (tupleA in decompositions) == False:
+			decompositions[tupleA] = 0
+		
+		dec = graph.edges()
+		if (dec in oldDecompositions):
+			unmove(graph, i)
+		else:
+			decompositions, won, lost, reward  = q_learning(graph, d, epsilon, decompositions, oldDecompositions)
+			if (won == True):
+				reward = reward/len(pMoves)
+				decompositions[tupleA] = reward
+				return decompositions, won, lost, reward
+			if (lost == True):
+				reward = reward/len(pMoves)
+				decompositions[tupleA] = reward
+				return decompositions, won, lost, reward
+	return decompositions, won, lost, reward
+
+def q_learning_train(len_graph, num_episodes, d, epsilon, decompositions = {}):
+	for n in range(num_episodes):
+		G = graphs.RandomRegular(5, len_graph)
+		won = False
+		for M in G.perfect_matchings():
+			for i in M:
+				G.delete_edge(i)
+			petersen = G.two_factor_petersen()
+			for i in M:
+				G.add_edge(i)
+			H = Graph(G)
+			canonicalDecomposition(H, M, petersen)
+			decompositions, won, lost, r = q_learning(H, d, epsilon, decompositions, [])
+			
+		
+			aux0 = petersen[0]
+			aux1 = petersen[1]
+			petersen = [aux1, aux0]
+			H = Graph(G)
+			canonicalDecomposition(H, M, petersen)
+			decompositions, won, lost, r  = q_learning(H, d, epsilon, decompositions, [])
+		
+			if won:
+				break
+	
+	return decompositions
+
+'''
+def q_learning_test(len_graph, num_episodes, d, epsilon, decompositions = {}):
+	for n in range(num_episodes):
+		G = graphs.RandomRegular(5, len_graph)
+		won = False
+		for M in G.perfect_matchings():
+			for i in M:
+				G.delete_edge(i)
+			petersen = G.two_factor_petersen()
+			for i in M:
+				G.add_edge(i)
+			H = Graph(G)
+			canonicalDecomposition(H, M, petersen)
+			decompositions, won, lost, r = q_learning(H, d, epsilon, decompositions, [])
+			
+		
+			aux0 = petersen[0]
+			aux1 = petersen[1]
+			petersen = [aux1, aux0]
+			H = Graph(G)
+			canonicalDecomposition(H, M, petersen)
+			decompositions, won, lost, r  = q_learning(H, d, epsilon, decompositions, [])
+		
+			if won:
+				break
+	
+	return decompositions
+'''
+
 # Prossimo passo unificar as buscas ou selecionar as mais importantes
+
+

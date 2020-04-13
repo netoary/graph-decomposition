@@ -331,4 +331,31 @@ INTELIGÊNCIA PARTE 3
 		
 		Talvez antes temos que fazer um dicionário de parâmetros, e atualizar os valores aos poucos
 		
+		
+	Rotulação canônica
+		sabemos que há n! rotulações de um grafo
+		gostaríamos de tratar dois grafos isomorfos como o mesmo grafo.
+		mas não há uma rotução de fato canônica fácil dos vértices
+		porém o sage já faz uma rotulação bem boa, que ele chama de canônica.
+		
 	
+	criando o data
+		atualmente estamos usando o polinomio característico, porque ele é invariante por permutação
+		chamemos de GRAFO DOS ANGULOS de u o grafo dos ângulos do subgrafo local de u
+		podemos usar a rotulação canônica, que aparentemente rotula dois grafos isomorfos H e G de forma ideal,
+			isso é que se usarmos a bijeção dos vértices que manda o vértice x de H no vértice x de G, 
+			essa bijeção é um isomorfismo, i.e, xy é uma aresta de H se e somente se xy é uma aresta de G
+		ideia:	após pegarmos o grafo dos ângulos X de um vértice,
+				tomamos um novo grafo que é X.canonical_label()
+				assim, se dois grafos possuem grafos dos ângulos isomorfos, 
+				então eles vão gerar o mesmo X.canonical_label() 
+				(com alta probabilidade, porque não entendemos canonical_label())
+					
+			precisamos consertar o grafo adicionando mais vértices (isolados) 
+			até que o grafo dos ângulos que estamos trabalhando tenha um número constante de vértices
+				isso fará que todo elemento do data set tenha o mesmo tamanho de feature
+					
+			podemos usar como feature a própria matriz ponderada de incidência.
+	
+	criando o target
+		
