@@ -614,20 +614,27 @@ def matrix_to_tuple(A):
 
 #### tentativa número 1 de q learning
 
-def graph_to_tuple(G):
+def graph_to_tuple(G, d):
 	angles = setted_angles(G)
+	n_aux = (( 5 * 4 ^ d ) - 2)/3
+	r = n_aux * 5 / 2
+
 	X = Graph(angles)
+	
+	while len(X) < r:
+		X.add_vertex()
 	X = X.canonical_label()
 	A = X.weighted_adjacency_matrix()
 	result=()
 	i = 1
 	for row in A:
-		values = []
-		for value in range(i, len(row)):
-			values.append(row[value])
+		values = row[i:]
+		#values = []
+		#for value in range(i, len(row)):
+			#values.append(row[value])
 		result+=tuple(values)
 		i += 1
-	return result
+	return X
 
 
 def q_learning(graph, d, epsilon, decompositions={}, oldDecompositions=[]):
@@ -649,7 +656,7 @@ def q_learning(graph, d, epsilon, decompositions={}, oldDecompositions=[]):
 	oldDecompositions.append(new_edges)
 	for episodes in range(100):
 		if pMoves == []:
-			reward = -1
+			reward = 1
 			return decompositions, False, True, reward
 		seed = uniform(0, 1)
 		if (seed < epsilon):
@@ -688,11 +695,11 @@ def q_learning(graph, d, epsilon, decompositions={}, oldDecompositions=[]):
 			decompositions, won, lost, reward  = q_learning(graph, d, epsilon, decompositions, oldDecompositions)
 			if (won == True):
 				reward = reward/len(pMoves)
-				decompositions[tupleA] = reward
+				decompositions[tupleA] = decompositions[tupleA] * 0.8 + reward * 0.2
 				return decompositions, won, lost, reward
 			if (lost == True):
 				reward = reward/len(pMoves)
-				decompositions[tupleA] = reward
+				decompositions[tupleA] = decompositions[tupleA] * 0.8 - reward * 0.2
 				return decompositions, won, lost, reward
 	return decompositions, won, lost, reward
 
