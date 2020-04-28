@@ -356,6 +356,36 @@ INTELIGÊNCIA PARTE 3
 				isso fará que todo elemento do data set tenha o mesmo tamanho de feature
 					
 			podemos usar como feature a própria matriz ponderada de incidência.
+			
+		Ideia 2.
+			Fixe grafo G
+			Suponha que temos um conjunto com todas as decomposições de G
+			Para cada decomposição D de G, gostaríamos de calcular a altura de D
+				
+				A altura de uma decomposição é o número mínimo de trocas 
+				que temos que fazer para chegar a uma decomposição em caminhos.
+				
+				Para isso temos que rodar uma busca de força bruta, tentando todas as trocas possíveis.
+				A busca mínima dará a altura.
+				
+				Neste caso, se D é uma decomposição em caminhos, então sua altura é 0
+				
+				Podemos fazer isso por uma busca em largura (ou programação dinâmica com memória).
+					Isto é, h(D) = 0 se D é dec. em caminhos
+						e	h(D) = 1+ min{h(D'): D' é obtida de D por uma operação}
+						
+					altura(D,dic):
+						se D está em dic:
+							return dic[D]
+						se D é dec. em caminhos:
+							dic[D]=0
+							return 0
+						decomps = conjuntodas decomposições obtidas de D por uma troca
+						min = min{h(D,dic) : D in decomps}
+						return min+1
+			
+			Para cada decomposição D de G, e cada vértice u de G:
+				adicionamos a altura de D na "distribuição" do grafo local de u
 	
 	criando o target
 		

@@ -55,4 +55,4 @@ def short_test(path, decompositions):
 
 
 
-short_test('graphs/5regular8-all.g6', decompositions)
+#short_test('graphs/5regular8-all.g6', decompositions)
