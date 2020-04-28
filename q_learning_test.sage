@@ -55,4 +55,8 @@ def short_test(path, decompositions):
 
 
 
+<<<<<<< HEAD
 #short_test('graphs/5regular8-all.g6', decompositions)
+=======
+short_test('graphs/5regular12-all.g6', decompositions)
+>>>>>>> bf9fccb16eef1a0bbb75c5e7cd4292f1492ccc30
