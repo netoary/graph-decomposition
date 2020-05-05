@@ -1,0 +1,78 @@
+								I. Model-free RL
+
+
+#################### Asynchronous Advantage Actor-Critic (A3C) ####################
+
+-Asynchronous: Several agents are trained in it’s own copy of the environment and the model form these agent’s are gathered in a master agent. The reason behind this idea, is that the experience of each agent is independent of the experience of the others. In this way the overall experience available for training becomes more diverse.
+
+-Advantage: Similarly to PG where the update rule used the dicounted returns from a set of experiences in order to tell the agnet which acttions were “good” or “bad”.
+
+-Actor-critic: combines the benefits of both approaches from policy-iteration method as PG and value-iteration method as Q-learning (See below). The network will estimate both a value function V(s) (how good a certain state is to be in) and a policy π(s).
+
+=link= https://medium.com/emergent-future/simple-reinforcement-learning-with-tensorflow-part-8-asynchronous-actor-critic-agents-a3c-c88f72a5e9f2
+
+
+#################### Trust Region Policy Optimization (TRPO) ####################
+
+=link= https://medium.com/@jonathan_hui/rl-trust-region-policy-optimization-trpo-explained-a6ee04eeeee9
+
+=link= https://medium.com/@jonathan_hui/rl-trust-region-policy-optimization-trpo-part-2-f51e3b2e373a
+
+=link= https://github.com/pat-coady/trpo
+
+
+#################### Proximal Policy Optimization (PPO) ####################
+
+=link= https://towardsdatascience.com/proximal-policy-optimization-ppo-with-sonic-the-hedgehog-2-and-3-c9c21dbed5e
+
+#################### Deep Q Neural Network (DQN) ####################
+
+=link= https://www.freecodecamp.org/news/an-introduction-to-deep-q-learning-lets-play-doom-54d02d8017d8/
+
+#################### C51 ####################
+
+=link= https://flyyufelix.github.io/2017/10/24/distributional-bellman.html
+
+-->FÁBIO SUGERIU ESSE -> #################### Distributional Reinforcement Learning with Quantile Regression (QR-DQN) #################### 
+
+=link= https://arxiv.org/pdf/1710.10044.pdf
+
+=link= https://github.com/senya-ashukha/quantile-regression-dqn-pytorch
+
+--------> OLHAR ESSE PRIMEIRO! #################### Hindsight Experience Replay (HER) ####################
+
+=link= https://arxiv.org/pdf/1707.01495.pdf
+
+=link= https://becominghuman.ai/learning-from-mistakes-with-hindsight-experience-replay-547fce2b3305
+
+=link= https://github.com/localminimum/hindsight-experience-replay
+
+####################  Hybrid  ####################
+
+=link= https://medium.com/@SmartLabAI/reinforcement-learning-algorithms-an-intuitive-overview-904e2dff5bbc I.3 Hybrid
+
+
+								II. Model-based RL
+
+#################### World models ####################
+
+=link= https://github.com/hardmaru/WorldModelsExperiments
+
+=link= https://arxiv.org/pdf/1803.10122.pdf
+
+#################### Imagination-Augmented Agents (I2A) ####################
+
+=link= https://github.com/clvrai/i2a-tf
+
+=link= https://arxiv.org/pdf/1707.06203.pdf
+
+#################### Model-Based Priors for Model-Free Reinforcement Learning (MBMF) ####################
+
+=link= https://github.com/Jerryxiaoyu/MBMF
+
+=link= https://arxiv.org/abs/1709.03153
+
+#################### Model-Based Value Expansion (MBVE) ####################
+
+=link= https://arxiv.org/pdf/1803.00101.pdf
+
