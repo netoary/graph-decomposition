@@ -834,7 +834,7 @@ def height_search_depth(graph, depth = 0, smallest = 999999, heights={}):
 	
 	for i in decomps:
 		medium_height, heights = height_search_depth(i, depth, smallest, heights)
-		print(len(heights))
+		#print(len(heights))
 		if (medium_height <= smallest):
 			smallest = medium_height
 	current_height = smallest + 1
