@@ -380,7 +380,7 @@ INTELIGÊNCIA PARTE 3
 						se D é dec. em caminhos:
 							dic[D]=0
 							return 0
-						decomps = conjuntodas decomposições obtidas de D por uma troca
+						decomps = conjuntodas decomposições obtidas de D por uma troca --ary (eu diria todas as trocas)
 						min = min{h(D,dic) : D in decomps}
 						return min+1
 			

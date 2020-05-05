@@ -594,7 +594,7 @@ def local_random_test_dic(G):
 		if b:
 			break
 	
-	return decompositions,b
+	return decompositions,b,H
 
 def conection_vertex(pair):
 	if (pair[0][0]==pair[1][0]):
@@ -758,6 +758,110 @@ def q_learning_test(len_graph, num_episodes, d, epsilon, decompositions = {}):
 	
 	return decompositions
 '''
+
+
+def height_search(graph, heights={}):
+	# retorna um dicionário com a altura de TODAS as decomposições de graph
+	mov=[]
+	new_edges=[]
+	#currentDecomposition = []
+	
+	for e in graph.edges():
+		new_edges.append(e)
+	currentDecomposition = tuple(new_edges)
+
+	if (currentDecomposition in heights):
+		return heights[currentDecomposition], heights
+
+	hangingEdges = takeHangingEdges(graph)
+	if (hangingEdges == True):
+		heights[currentDecomposition] = 0
+		return 0, heights
+
+	pMoves = possibleMoves(graph, hangingEdges)
+	var = False
+
+	decomps = []
+	for i in pMoves:
+		move(graph, i)
+		decomps.append(graph)
+		unmove(graph, i)
+	
+	smallest = 99999999999999999999
+	for i in decomps:
+		medium_height = height_search(i, heights)
+		if (medium_height <= smallest):
+			smallest = medium_height
+	current_height = smallest + 1
+	heights[currentDecomposition] = current_height
+	return current_height, heights
+
+
+def height_search_depth(graph, depth = 0, smallest = 999999, heights={}):
+	# retorna um dicionário com a altura de TODAS as decomposições de graph
+	mov=[]
+	new_edges=[]
+	
+	for e in graph.edges():
+		new_edges.append(e)
+	currentDecomposition = tuple(new_edges)
+
+
+	if (depth >= 100):
+		heights[currentDecomposition] = depth
+		return depth, heights
+
+	depth += 1
+
+
+	if (currentDecomposition in heights):
+		return heights[currentDecomposition], heights
+
+	hangingEdges = takeHangingEdges(graph)
+	if (hangingEdges == True):
+		heights[currentDecomposition] = 0
+		return 0, heights
+
+	pMoves = possibleMoves(graph, hangingEdges)
+
+	decomps = []
+	for i in pMoves:
+		move(graph, i)
+		decomps.append(Graph(graph))
+		#graph.show(color_by_label=true, layout="circular")
+		unmove(graph, i)
+	
+	
+	for i in decomps:
+		medium_height, heights = height_search_depth(i, depth, smallest, heights)
+		print(len(heights))
+		if (medium_height <= smallest):
+			smallest = medium_height
+	current_height = smallest + 1
+	heights[currentDecomposition] = current_height
+	return current_height, heights
+
+def height_search_depth_test(G):
+	a = 0
+	b = {}
+	for M in G.perfect_matchings():
+		for i in M:
+			G.delete_edge(i)
+		petersen = G.two_factor_petersen()
+		for i in M:
+			G.add_edge(i)
+		H = Graph(G)
+		canonicalDecomposition(H, M, petersen)
+		a, b = height_search_depth(H, 0, 999999, b)
+		
+	
+		aux0 = petersen[0]
+		aux1 = petersen[1]
+		petersen = [aux1, aux0]
+		H = Graph(G)
+		canonicalDecomposition(H, M, petersen)
+		a, b = height_search_depth(H, 0, 999999, b)
+	return b
 
 # Prossimo passo unificar as buscas ou selecionar as mais importantes
 
