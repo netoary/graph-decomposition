@@ -797,7 +797,7 @@ def height_search(graph, heights={}):
 	return current_height, heights
 
 
-def height_search_depth(graph, depth = 0, smallest = 999999, heights={}):
+def height_search_depth(graph, depth = 0, smallest = oo, heights={}):
 	# retorna um dicionário com a altura de TODAS as decomposições de graph
 	mov=[]
 	new_edges=[]
@@ -809,7 +809,7 @@ def height_search_depth(graph, depth = 0, smallest = 999999, heights={}):
 
 	if (depth >= 100):
 		heights[currentDecomposition] = depth
-		return depth, heights
+		return oo, heights
 
 	depth += 1
 
