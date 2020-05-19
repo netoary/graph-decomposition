@@ -358,9 +358,10 @@ INTELIGÊNCIA PARTE 3
 			podemos usar como feature a própria matriz ponderada de incidência.
 			
 		Ideia 2.
-			Fixe grafo G
+			Fixe grafo G.
+			Vamos criar heights_G
 			Suponha que temos um conjunto com todas as decomposições de G
-			Para cada decomposição D de G, gostaríamos de calcular a altura de D
+			Para cada decomposição D de G, gostaríamos de calcular a altura de D: heights_G[D]
 				
 				A altura de uma decomposição é o número mínimo de trocas 
 				que temos que fazer para chegar a uma decomposição em caminhos.
@@ -384,8 +385,69 @@ INTELIGÊNCIA PARTE 3
 						min = min{h(D,dic) : D in decomps}
 						return min+1
 			
+			Vamos criar um loc_G:
 			Para cada decomposição D de G, e cada vértice u de G:
-				adicionamos a altura de D na "distribuição" do grafo local de u
+				adicionamos a altura de D na "distribuição" do grafo local sub[u,D] de u loc_G[sub[u,D]]
+			
+			Precisamos fazer o dicionário total dos subgrafos locais loc_total
+				Cada subgrafo local sub aparece em muitas decomposições.
+				Para vários grafos G, calculamos loc_G, e "mesclamos" com loc_total
+					para cada sub em loc_G, "appendamos" loc_G[sub] em loc_total[sub]
+						se sub não está em loc_total, criamos loc_total[sub]=[]
+				Assim, loc[sub] é um array com as alturas das decomposições nas quais sub aparece.
+				
 	
 	criando o target
+	
+TESTES
+	Temos alguns métodos
+		-	força bruta
+		-	busca aleatória em profundidade
+		-	programação linear
+			-	com GUROBI
+			-	com GLPK - se o GLPK for tão rápido quanto o GUROBI pra esse problema, então é algo curioso!
+		-	inteligência
 		
+	Gostaríamos de comparar nossos métodos entre si
+		-	alguns métodos podem não resolver certas instâncias 
+			-	um neste caso, uma instância é um par grafo+emparelhamento
+			-	o método de força bruta, ou busca aleatória em profundidade 
+				eventualmente não encontra decomposição em caminhos, e isso depende do emparelhamento inicial
+				-	é interessante guardarmos algumas instâncias ruins
+		-	até quantos vértices conseguimos resolver?
+		-	até quantos vértices conseguimos resolver em menos de um minuto, 
+			ou em menos de uma hora cada instância ou um conjunto de instâncias?
+		-	qual método é mais rápido?
+		-	qual método resolve mais instância?
+		-	somos capazes de resolver todas as possíveis instâncias com até 10, ou 12 vértices?
+			-	Em quanto tempo fazemos isso?
+		-	somos capazes de resolver todas as instâncias bipartidas, ou planares com até 14 ou 16 vértices?
+			-	para isso temos que usar o nauty, que é uma ferramenta para gerar grafos
+				-	o nauty é um programa que acho que dá pra baixar pelo apt-get
+				-	se eu quero gerar todos os grafos 5-regulares com n vértices, o comando é
+					-	nauty-geng n -d5D5 > arquivo de saída
+			-	em quanto tempo fazemos isso?
+		-	e quando trabalhamos com instâncias gigantes?
+			-	com 100, 1000, 10000, ou 100000 vértices?
+			-	neste caso, gostaríamos de resolver um conjunto "pequeno" de instâncias aleatórias.
+			-	precisamos anotar quanto tempo, em média, nossos métodos demoram para resolver tais instâncias
+		-	quais os grafos mais difíceis, que demoram mais pra ser resolvidos?
+		-	qual a altura média dos experimentos
+			-	ou profundidade média
+	Como se respondem essas perguntas para grafos 7-regulares, ou 9-regulares?
+		
+PROJETO DE TCC
+
+	Definições
+	-	o que é um grafo
+	-	o que é um grafo regular
+	
+	-	qual é o problema abordado?
+	
+	-	por que esse problema é importante?
+	
+	-	há algoritmo polinomial?
+		-	isso é complicado de responder, não sabemos a resposta.
+		-	há para alguns casos
+			-	paper de Fábio
+			-	Dissertação de Luiz
