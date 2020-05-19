@@ -634,7 +634,7 @@ def graph_to_tuple(G, d):
 			#values.append(row[value])
 		result+=tuple(values)
 		i += 1
-	return X
+	return result
 
 
 def q_learning(graph, d, epsilon, decompositions={}, oldDecompositions=[]):
@@ -669,7 +669,7 @@ def q_learning(graph, d, epsilon, decompositions={}, oldDecompositions=[]):
 				move(graph, i)
 				u = conection_vertex(i)
 				subgraph = local_subgraph(graph,u, d)
-				tupleA = graph_to_tuple(subgraph)
+				tupleA = graph_to_tuple(subgraph, d)
 				if (tupleA in decompositions):
 					aux = decompositions[tupleA]
 				else:
@@ -683,7 +683,7 @@ def q_learning(graph, d, epsilon, decompositions={}, oldDecompositions=[]):
 		u = conection_vertex(i)
 		subgraph = local_subgraph(graph,u, d)
 
-		tupleA = graph_to_tuple(subgraph)
+		tupleA = graph_to_tuple(subgraph, d)
 		
 		if (tupleA in decompositions) == False:
 			decompositions[tupleA] = 0
@@ -806,16 +806,14 @@ def height_search_depth(graph, depth = 0, smallest = oo, heights={}):
 		new_edges.append(e)
 	currentDecomposition = tuple(new_edges)
 
+	if (currentDecomposition in heights):
+		return heights[currentDecomposition], heights
 
-	if (depth >= 100):
-		heights[currentDecomposition] = depth
+	if (depth >= 200):
+		heights[currentDecomposition] = oo
 		return oo, heights
 
 	depth += 1
-
-
-	if (currentDecomposition in heights):
-		return heights[currentDecomposition], heights
 
 	hangingEdges = takeHangingEdges(graph)
 	if (hangingEdges == True):
@@ -837,6 +835,7 @@ def height_search_depth(graph, depth = 0, smallest = oo, heights={}):
 		#print(len(heights))
 		if (medium_height <= smallest):
 			smallest = medium_height
+	print(smallest)
 	current_height = smallest + 1
 	heights[currentDecomposition] = current_height
 	return current_height, heights
@@ -852,7 +851,7 @@ def height_search_depth_test(G):
 			G.add_edge(i)
 		H = Graph(G)
 		canonicalDecomposition(H, M, petersen)
-		a, b = height_search_depth(H, 0, 999999, b)
+		a, b = height_search_depth(H, 0, oo, b)
 		
 	
 		aux0 = petersen[0]
@@ -860,8 +859,48 @@ def height_search_depth_test(G):
 		petersen = [aux1, aux0]
 		H = Graph(G)
 		canonicalDecomposition(H, M, petersen)
-		a, b = height_search_depth(H, 0, 999999, b)
+		a, b = height_search_depth(H, 0, oo, b)
+		break
 	return b
+
+
+def move_train(graph, d, move_dic={}, heights_dic={}):
+	mov=[]
+	hangingEdges = takeHangingEdges(graph)
+
+	if (hangingEdges == True):
+		return move_dic, heights_dic
+
+	pMoves = possibleMoves(graph, hangingEdges)
+	
+	for i in pMoves:
+		move(graph, i)
+		u = conection_vertex(i)
+		subgraph = local_subgraph(graph,u, d)
+		tupleA = graph_to_tuple(subgraph, d)
+
+		if not(tupleA in move_dic):
+			move_dic[tupleA] = []
+		
+		height, heights_dic = height_search_depth(graph, 0, oo, heights_dic)
+
+		move_dic[tupleA].append(height)
+
+		unmove(graph, i)
+
+	return move_dic, heights_dic
+
+def full_move_train(d, height_dic):
+	if height_dic == {}:
+		return "deu bode"
+	move_dic = {}
+	heights_dic = {}
+	for G in height_dic:
+		graph = Graph(list(G))
+		move_dic, heights_dic = move_train(graph, d, move_dic, heights_dic)
+	return move_dic, heights_dic
+
+
 
 # Prossimo passo unificar as buscas ou selecionar as mais importantes
 
