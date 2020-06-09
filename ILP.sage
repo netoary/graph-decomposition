@@ -1,11 +1,11 @@
+# -*- coding: utf-8 -*-
 import time
-import sage_numerical_backends_cplex.cplex_backend as cplex_backend, sage.numerical.backends as backends, sys
-sys.modules['sage.numerical.backends.cplex_backend'] = backends.cplex_backend = cplex_backend
 
 load('functions.sage')
 def solve_direct_ILP(G):
 	inicio = time.time()
-	p = MixedIntegerLinearProgram(maximization=True,solver="CPLEX")
+	p = MixedIntegerLinearProgram(maximization=True,solver="GUROBI")
+	#p = MixedIntegerLinearProgram(maximization=True,solver=GurobiBackend)
 	count = 0
 	w = p.new_variable(binary=True)
 	constraint = 0
@@ -45,7 +45,7 @@ def solve_direct_ILP(G):
 	
 def basic_model(G):
 	inicio = time.time()
-	p = MixedIntegerLinearProgram(maximization=True,solver='CPLEX')
+	p = MixedIntegerLinearProgram(maximization=True,solver="GUROBI")
 	count = 0
 	w = p.new_variable(binary=True)
 	dic={}

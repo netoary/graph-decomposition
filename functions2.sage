@@ -334,8 +334,7 @@ def full_test(G):
 		H = Graph(G)
 		canonicalDecomposition(H, M, petersen)
 		cont = full_search(H, 0, [])
-		if cont==1:
-			graphs.append(H)
+		graphs.append(M)
 		b.append(cont)
 	
 		aux0 = petersen[0]
@@ -344,8 +343,7 @@ def full_test(G):
 		H = Graph(G)
 		canonicalDecomposition(H, M, petersen)
 		cont = full_search(H, 0, [])
-		if cont==1:
-			graphs.append(H)
+		graphs.append(M)
 		b.append(cont)
 	
 	return b, graphs
@@ -931,6 +929,7 @@ def test_test(G, M):
 	if var:
 		rightMoves.append(mov)
 	b.append(var)
+	print(G.edges()==graph.edges())
 
 	aux0 = petersen[0]
 	aux1 = petersen[1]
@@ -941,8 +940,7 @@ def test_test(G, M):
 	if var:
 		rightMoves.append(mov)
 	b.append(var)
-	print(G==graph)
-	print(isPathDecomposition(graph))
+	print(G.edges()==graph.edges())
 
 	return b, rightMoves, graph
 
@@ -974,3 +972,28 @@ def searchALTdepth(graph, oldDecompositions=[],depth=0):
 				mov.insert(0,i)
 				return mov, var, graph
 	return mov, var, graph
+
+
+
+def test_direto_planar(G, M):
+	for i in M:
+		G.delete_edge(i)
+	petersen = G.two_factor_petersen()
+	for i in M:
+		G.add_edge(i)
+	H = Graph(G)
+	canonicalDecomposition(H, M, petersen)
+	#print(isPathDecomposition(H))
+	var = isPathDecomposition(H)
+
+	if (var):
+		return var
+
+	aux0 = petersen[0]
+	aux1 = petersen[1]
+	petersen = [aux1, aux0]
+	H = Graph(G)
+	canonicalDecomposition(H, M, petersen)
+	#print(isPathDecomposition(H))
+	var = isPathDecomposition(H)
+	return var
