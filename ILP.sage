@@ -2,6 +2,7 @@
 import time
 
 load('functions.sage')
+
 def solve_direct_ILP(G):
 	inicio = time.time()
 	p = MixedIntegerLinearProgram(maximization=True,solver="GUROBI")
@@ -42,7 +43,119 @@ def solve_direct_ILP(G):
 		cor+=1
 	fim = time.time()
 	print('tempo de execução ' + str(fim-inicio))
-	
+	return setted
+
+
+def solve_direct_factor_ILP(G, m):
+	inicio = time.time()
+	p = MixedIntegerLinearProgram(maximization=True,solver="GUROBI")
+	#p = MixedIntegerLinearProgram(maximization=True,solver=GurobiBackend)
+	count = 0
+	w = p.new_variable(binary=True)
+	constraint = 0
+	dic={}
+	for e in G.edges():
+		dic[e]=[]
+	for x in Subsets(G.edges(),5):
+		H = Graph()
+		H.add_edges(x)
+		if isPath(H):
+			centralEdge = find_central_edge(H)
+			u, v = centralEdge
+			if (((u,v) in m) or ((v, u) in m)):
+				constraint=constraint+w[x]
+				for e in x:
+					dic[e].append(x)
+				count+=1
+	m = G.order()/2
+	p.add_constraint(constraint==m)		
+	for y in dic:
+		constraint=0
+		for x in dic[y]:
+			constraint=constraint+w[x]
+		p.add_constraint(constraint<=1)
+
+	try:
+		p.solve()
+	except:
+		return False
+	return True
+
+
+def find_1_factor(setted):
+	m = []
+	for path in setted:
+		G = Graph()
+		for e in path:
+			G.add_edge(e)
+		e = find_central_edge(G)
+		m.append((e[0],e[1]))
+	return m
+
+def find_central_edge(G):
+	H = Graph(G)
+	central_edge = []
+	for v in G.vertices():
+		if (G.degree(v) == 1):
+			H.delete_vertex(v)
+	for v in H.vertices():
+		if (H.degree(v) == 2):
+			central_edge.append(v)
+	return central_edge
+
+def solve_direct_ILP_full(G):
+	inicio = time.time()
+	all_graphs = []
+	p = MixedIntegerLinearProgram(maximization=True,solver="GUROBI")
+	#p = MixedIntegerLinearProgram(maximization=True,solver=GurobiBackend)
+	count = 0
+	w = p.new_variable(binary=True)
+	constraint = 0
+	dic={}
+	for e in G.edges():
+		dic[e]=[]
+	for x in Subsets(G.edges(),5):
+		H = Graph()
+		H.add_edges(x)
+		if isPath(H):
+			constraint=constraint+w[x]
+			for e in x:
+				dic[e].append(x)
+			count+=1
+	m = G.order()/2
+	p.add_constraint(constraint<=m)
+	p.add_constraint(constraint>=m)			
+	for y in dic:
+		constraint=0
+		for x in dic[y]:
+			constraint=constraint+w[x]
+		p.add_constraint(constraint<=1)
+
+	while(True):
+		try:
+			p.solve()
+		except:
+			break
+		sol=p.get_values(w).items()
+		setted=[]
+		constraint=0
+		for x in sol:
+			if x[1]==1.0:
+				setted.append(x[0])
+				constraint=constraint+w[x[0]]
+		print(setted)
+		all_graphs.append(setted)
+		p.add_constraint(constraint<=m)
+		p.add_constraint(constraint>=m)
+	return all_graphs
+
+	# ADICIONAR LOOP, dúvida até quando?
+	 
+
+	fim = time.time()
+	print('tempo de execução ' + str(fim-inicio))
+
+
 def basic_model(G):
 	inicio = time.time()
 	p = MixedIntegerLinearProgram(maximization=True,solver="GUROBI")
